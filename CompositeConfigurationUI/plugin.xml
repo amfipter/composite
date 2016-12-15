@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+    <launchConfigurationTypeImage
+        icon="icons/flask.gif"
+        configTypeID="amfipter.plugin.composite"
+        id="amfipter.plugin.image">
+    </launchConfigurationTypeImage>
+</extension>
+
+<extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="amfipter.plugin.ui.CompositeTabGroup"
+            id="amfipter.plugin.composite"
+            type="amfipter.plugin.composite">
+      </launchConfigurationTabGroup>
+</extension>
+
+</plugin>

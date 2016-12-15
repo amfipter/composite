@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+<extension point="org.eclipse.debug.core.launchConfigurationTypes">
+    <launchConfigurationType
+        name="Composite Configuration"
+        delegate="amfipter.plugin.CompositeConfiguration"
+        modes="run, debug"               
+        id="amfipter.plugin.composite">        
+    </launchConfigurationType>
+</extension>
+
+</plugin>
