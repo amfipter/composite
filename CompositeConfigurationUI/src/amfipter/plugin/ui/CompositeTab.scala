@@ -29,6 +29,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.GC
+import org.eclipse.swt.graphics.Point
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -58,6 +59,7 @@ import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.TextCellEditor
 import org.eclipse.jface.viewers.ICellEditorValidator
 import org.eclipse.jface.viewers.ColumnViewer
+import org.eclipse.jface.dialogs.Dialog
 import scala.reflect.io.File
 import java.io.PrintWriter
 import java.util.ArrayList
@@ -65,13 +67,17 @@ import java.util.LinkedList
 import java.util.Vector
 import org.eclipse.jface.viewers.ISelectionChangedListener
 import org.eclipse.jface.viewers.SelectionChangedEvent
+import java.io.ObjectOutputStream
+import java.io.ByteArrayOutputStream
+import java.io.ByteArrayInputStream
+import java.io.ObjectInputStream
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
 
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
-  private val configurations = new Vector[ConfigurationTableContext]//new ArrayBuffer[ConfigurationTableContext]
+  private var configurations = new Vector[LaunchConfigurationElement]//new ArrayBuffer[ConfigurationTableContext]
   
   private class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
@@ -88,25 +94,46 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   
   private val log = new Logger("LOG")
   for( i <- 0 to 3) {
-    configurations.add(new ConfigurationTableContext("lul " + i.toString()))
+    configurations.add(new LaunchConfigurationElement())
   }
   
-  private object executionMode extends Enumeration {
+  object ExecutionMode extends Enumeration {
     val Run, Debug, Profile = Value
+    
   }
   
   private object GuiSupport {
     var tableViewer :TableViewer = null
-    var buttonAdd :Button = null
-    var buttonRemove :Button = null
-    var buttonCopy :Button = null
-    var buttonUp :Button = null
-    var buttonDown :Button = null
+    private var buttonAdd :Button = null
+    private var buttonRemove :Button = null
+    private var buttonCopy :Button = null
+    private var buttonUp :Button = null
+    private var buttonDown :Button = null
+    
+    var mainComposite :Composite = null
+    
+    def addDialog(parent :Composite) :Unit = {
+      class AddDialog(parentShell :Shell) extends Dialog(parentShell) {
+        override def createDialogArea(parent :Composite) :Control = {
+          val container = super.createDialogArea(parent)
+          container
+        }
+        override def configureShell(shell :Shell) :Unit = {
+          super.configureShell(shell)
+          shell.setText("TEST")
+        }
+        override def getInitialSize() :Point = {
+          new Point(450, 300)
+        }
+      }
+      val dialog = new AddDialog(mainComposite.getShell())
+    }
     
     def buttonAddAction(button :Button) :Unit = {
       buttonAdd = button
       button.addSelectionListener(new SelectionListener() {
         def widgetSelected(event :SelectionEvent) :Unit = {
+          addDialog(mainComposite)
           updateButtons()
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
@@ -121,7 +148,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           for(element <- selected.toArray()) {
 //            log(element)
 //            configurations.remove(element)
-            configurations.remove(element.asInstanceOf[ConfigurationTableContext])
+            configurations.remove(element.asInstanceOf[LaunchConfigurationElement])
           }
           val t = true
           tableViewer.refresh()  
@@ -138,8 +165,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         def widgetSelected(event :SelectionEvent) :Unit = {
           val selected = tableViewer.getStructuredSelection()
           for(element <- selected.toArray()) {
-            val copy = new ConfigurationTableContext(element.asInstanceOf[ConfigurationTableContext])
-            val position = configurations.indexOf(element.asInstanceOf[ConfigurationTableContext])
+            val copy = new LaunchConfigurationElement(element.asInstanceOf[LaunchConfigurationElement])
+            val position = configurations.indexOf(element.asInstanceOf[LaunchConfigurationElement])
             configurations.insertElementAt(copy, position)
           }
           tableViewer.refresh()
@@ -158,12 +185,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         def widgetSelected(event :SelectionEvent) :Unit = {
           val selected = tableViewer.getStructuredSelection()
           log.println("PRESS")
-//          log.println(selectedElements.toString())
-//          log.println(selectedElements.asInstanceOf[ConfigurationTableContext].toString())
-//          for(i <- selectedElements) {
-//            log(i.getData())
-//            log(configurations.indexOf(i.getData()))
-//          }
           for( configuration <- selected.toArray() if configurations.indexOf(configuration) > 0) {
             val position = configurations.indexOf(configuration)
             val element = configurations.get(position)
@@ -183,18 +204,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     def buttonDownAction(button :Button) :Unit = {
       buttonDown = button
       button.addSelectionListener(new SelectionListener() {
-        log("remove listener")
         def widgetSelected(event :SelectionEvent) :Unit = {
-//          val table = tableViewer.getTable() 
-//          val selectedElements = table.getSelection()
           val selected = tableViewer.getStructuredSelection()
-          log.println("PRESS")
-//          log.println(selectedElements.toString())
-//          for(i <- selectedElements) {
-//            log(i.getData())
-//            log(configurations.indexOf(i.getData()))
-//          }
-          for( configuration <- selected.toArray() if configurations.indexOf(configuration) >= configurations.size() - 1) {
+          log.println("PRESS DOWN")
+          for( configuration <- selected.toArray() if configurations.indexOf(configuration) < configurations.size() - 1) {
             val position = configurations.indexOf(configuration)
             val element =  configurations.get(position)
             configurations.remove(position)
@@ -239,27 +252,52 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         }
       })
     }
+    
+    def updateTableData() :Unit = {
+      tableViewer.setInput(configurations)
+    }
   }
   
-  private class ConfigurationTableContext {
-    var name = "test"
-    var mode = executionMode.Run
+  class LaunchConfigurationElement extends Serializable {
+    var name = "lul " + configurations.size().toString()
+    var mode = ExecutionMode.Run
     var execCount = 1
     var waitTermination = false
     var delay = 0
     
-    def this(customName :String)  {
+    def this(serialised :String)  {
       this()
-      name = customName
+      log(serialised)
+      val values = serialised.split(", ").toBuffer
+      log(values)
+      delay = values.last.toInt
+      values -= values.last
+      waitTermination = values.last.toBoolean
+      values -= values.last
+      execCount = values.last.toInt
+      values -= values.last
+      values.last match {
+        case "Run" => mode = ExecutionMode.Run
+        case "Debug" => mode = ExecutionMode.Debug
+        case "Profile" => mode = ExecutionMode.Profile
+      }
+      values -= values.last
+      name = values.mkString
     }
     
-    def this(another :ConfigurationTableContext) {
+    def this(another :LaunchConfigurationElement) {
       this()
       name = another.name
       mode = another.mode 
       execCount = another.execCount
       waitTermination = another.waitTermination
       delay = another.delay
+    }
+    def serialize() :String = {
+      s"$name, $mode, $execCount, $waitTermination, $delay"
+    }
+    override def toString() :String = {
+      s"LaunchConfigurationElement($name, $mode, $execCount, $waitTermination, $delay)"
     }
   }
   
@@ -288,16 +326,16 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
     
     override protected def getValue(element :Object) :Object = {
-      val configContext = element.asInstanceOf[ConfigurationTableContext]
+      val configContext = element.asInstanceOf[LaunchConfigurationElement]
       configContext.mode.id.asInstanceOf[Object]
 //      return 1.asInstanceOf[Object]
       2.asInstanceOf[Object]
     }
     
     override protected def setValue(element :Object, value :Object) :Unit = {
-      val configContext = element.asInstanceOf[ConfigurationTableContext]
+      val configContext = element.asInstanceOf[LaunchConfigurationElement]
       val mode = value.asInstanceOf[Int]
-      configContext.mode = executionMode(mode)
+      configContext.mode = ExecutionMode(mode)
       tableViewer.update(element, null)
       
     }
@@ -317,15 +355,15 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
     
     override protected def getValue(element :Object) :Object = {
-      val configContext = element.asInstanceOf[ConfigurationTableContext]
+      val configContext = element.asInstanceOf[LaunchConfigurationElement]
       configContext.delay.asInstanceOf[Object]
     }
     
     override protected def setValue(element :Object, value :Object) :Unit = {
-      val configContext = element.asInstanceOf[ConfigurationTableContext]
+      val configContext = element.asInstanceOf[LaunchConfigurationElement]
 //      println(value.toString())
 //      val mode = value.asInstanceOf[String].toInt
-      configContext.mode = executionMode(0)
+      configContext.mode = ExecutionMode(0)
       tableView.update(element, null)
       
     }
@@ -345,12 +383,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
     
     override protected def getValue(element :Object) :Object = {
-      val configContext = element.asInstanceOf[ConfigurationTableContext]
+      val configContext = element.asInstanceOf[LaunchConfigurationElement]
       configContext.execCount.asInstanceOf[Object]
     }
     
     override protected def setValue(element :Object, value :Object) :Unit = {
-      val configContext = element.asInstanceOf[ConfigurationTableContext]
+      val configContext = element.asInstanceOf[LaunchConfigurationElement]
       val count = value.asInstanceOf[Int]
       configContext.execCount = count
       tableView.update(element, null)
@@ -373,6 +411,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     buttonComp.setLayout(new GridLayout(5, true))
     buttonComp.setFont(parent.getFont())
     createMainButtons(buttonComp)
+    GuiSupport.mainComposite = parent
     
     
   }
@@ -417,14 +456,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     col1.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[ConfigurationTableContext]
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
         configContext.name
       }
     })
     
     col2.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[ConfigurationTableContext]
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
         configContext.mode.toString()
       }
     })
@@ -432,7 +471,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     col3.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[ConfigurationTableContext]
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
         configContext.delay.toString()
       }
     })
@@ -441,14 +480,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     col4.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[ConfigurationTableContext]
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
         configContext.waitTermination.toString()
       }
     })
     
     col5.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[ConfigurationTableContext]
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
         configContext.execCount.toString()
       }
     })
@@ -517,11 +556,30 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     return "Composite"
   }
   override def initializeFrom(configuration :ILaunchConfiguration) :Unit = {
-    
+    log("---initializeFrom---")
+    val tempList = new ArrayList[String]
+    val newConfigurations = new Vector[LaunchConfigurationElement]
+    val storedData = configuration.getAttribute(GuiConstants.storeAttributeName, tempList)
+    for( element <- storedData.toArray()) {
+      newConfigurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
+    }
+    configurations = newConfigurations
+    GuiSupport.updateTableData()
+    log("=====================")
   }
   
   override def performApply(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {
-    
+    log("---performApply---")
+    configurationCopy.removeAttribute(GuiConstants.storeAttributeName)
+    val tempList = new ArrayList[String]
+    log(configurations)
+    for( element <- configurations.toArray()) {
+      tempList.add(element.asInstanceOf[LaunchConfigurationElement].serialize())
+    }
+    configurationCopy.setAttribute(GuiConstants.storeAttributeName, tempList)
+    log("=====================")
+  
+//    configurationCopy.setAttribute("configurations", configurations.toArray())
   }
   
   override def setDefaults(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {

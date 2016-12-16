@@ -2,15 +2,10 @@ package amfipter.plugin.ui
 
 import org.eclipse.osgi.util.NLS
 
-class GuiConstants extends NLS {
-  
-  
-  
-}
+class GuiConstants extends NLS {}
 
 object GuiConstants {
   private val BUNDLE_NAME = "amfipter.plugin.ui.guiconstants"
-  NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass())
   var buttonAdd = "ADD"
   var buttonRemove = "REMOVE"
   var buttonCopy = "COPY"
@@ -26,4 +21,6 @@ object GuiConstants {
   var tableCol3Name = "DELAY"
   var tableCol4Name = "WAIT TERMINATION"
   var tableCol5Name = "EXECUTION COUNT"
+  var storeAttributeName = "composite configuration store prefix"
+  NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass())
 }
