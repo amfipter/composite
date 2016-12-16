@@ -60,13 +60,16 @@ import org.eclipse.jface.viewers.ICellEditorValidator
 import org.eclipse.jface.viewers.ColumnViewer
 import scala.reflect.io.File
 import java.io.PrintWriter
+import java.util.ArrayList
+import java.util.LinkedList
+import java.util.Vector
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
 
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
-  private val configurations = new ArrayBuffer[ConfigurationTableContext]
+  private val configurations = new Vector[ConfigurationTableContext]//new ArrayBuffer[ConfigurationTableContext]
   
   class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
@@ -83,7 +86,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   
   private val log = new Logger("LOG")
   for( i <- 0 to 3) {
-    configurations += new ConfigurationTableContext("lul " + i.toString())
+    configurations.add(new ConfigurationTableContext("lul " + i.toString()))
   }
   
   object executionMode extends Enumeration {
@@ -104,9 +107,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           for(element <- selected.toArray()) {
 //            log(element)
 //            configurations.remove(element)
-            configurations-=(element.asInstanceOf[ConfigurationTableContext])
+            configurations.remove(element.asInstanceOf[ConfigurationTableContext])
           }
-          tableViewer.refresh()
+          val t = true
+          tableViewer.refresh()  
+          updateLaunchConfigurationDialog()
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
       })
@@ -119,9 +124,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           for(element <- selected.toArray()) {
             val copy = new ConfigurationTableContext(element.asInstanceOf[ConfigurationTableContext])
             val position = configurations.indexOf(element.asInstanceOf[ConfigurationTableContext])
-            configurations.insert(position, copy)
+            configurations.insertElementAt(copy, position)
           }
           tableViewer.refresh()
+          updateLaunchConfigurationDialog()
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
       })
@@ -143,12 +149,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
 //          }
           for( configuration <- selected.toArray() if configurations.indexOf(configuration) > 0) {
             val position = configurations.indexOf(configuration)
-            val element = configurations(position)
+            val element = configurations.get(position)
             configurations.remove(position)
-            configurations.insert(position - 1, element)
+            configurations.insertElementAt(element, position - 1)
           }
           tableViewer.refresh()
-          
+          updateLaunchConfigurationDialog()
           
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
@@ -169,13 +175,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
 //            log(i.getData())
 //            log(configurations.indexOf(i.getData()))
 //          }
-          for( configuration <- selected.toArray() if configurations.indexOf(configuration) >= configurations.length - 1) {
+          for( configuration <- selected.toArray() if configurations.indexOf(configuration) >= configurations.size() - 1) {
             val position = configurations.indexOf(configuration)
-            val element = configurations(position)
+            val element =  configurations.get(position)
             configurations.remove(position)
-            configurations.insert(position + 1, element)
+            configurations.insertElementAt(element, position + 1)
           }
           tableViewer.refresh()
+          updateLaunchConfigurationDialog()
         }
         
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
@@ -399,7 +406,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     viewer.setContentProvider(new ArrayContentProvider())
 //    println(configurations.toString())
-    viewer.setInput(configurations.toArray)
+    viewer.setInput(configurations)
     
   }
   
