@@ -63,6 +63,8 @@ import java.io.PrintWriter
 import java.util.ArrayList
 import java.util.LinkedList
 import java.util.Vector
+import org.eclipse.jface.viewers.ISelectionChangedListener
+import org.eclipse.jface.viewers.SelectionChangedEvent
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
@@ -71,7 +73,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
   private val configurations = new Vector[ConfigurationTableContext]//new ArrayBuffer[ConfigurationTableContext]
   
-  class Logger(fileName :String) {
+  private class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
     def println(x :Any) :Unit = {
       log.println(x.toString())
@@ -89,18 +91,30 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     configurations.add(new ConfigurationTableContext("lul " + i.toString()))
   }
   
-  object executionMode extends Enumeration {
+  private object executionMode extends Enumeration {
     val Run, Debug, Profile = Value
   }
   
-  object GuiSupport {
+  private object GuiSupport {
     var tableViewer :TableViewer = null
+    var buttonAdd :Button = null
+    var buttonRemove :Button = null
+    var buttonCopy :Button = null
+    var buttonUp :Button = null
+    var buttonDown :Button = null
     
     def buttonAddAction(button :Button) :Unit = {
-      
+      buttonAdd = button
+      button.addSelectionListener(new SelectionListener() {
+        def widgetSelected(event :SelectionEvent) :Unit = {
+          updateButtons()
+        }
+        def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
+      })
     }
     
     def buttonRemoveAction(button :Button) :Unit = {
+      buttonRemove = button
       button.addSelectionListener(new SelectionListener() {
         def widgetSelected(event :SelectionEvent) :Unit = {
           val selected = tableViewer.getStructuredSelection()
@@ -111,6 +125,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           }
           val t = true
           tableViewer.refresh()  
+          updateButtons()
           updateLaunchConfigurationDialog()
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
@@ -118,6 +133,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
     
     def buttonCopyAction(button :Button) :Unit = {
+      buttonCopy = button
       button.addSelectionListener(new SelectionListener() {
         def widgetSelected(event :SelectionEvent) :Unit = {
           val selected = tableViewer.getStructuredSelection()
@@ -127,6 +143,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
             configurations.insertElementAt(copy, position)
           }
           tableViewer.refresh()
+          updateButtons()
           updateLaunchConfigurationDialog()
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
@@ -135,7 +152,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
     
     def buttonUpAction(button :Button) :Unit = {
-      
+      buttonUp = button
       button.addSelectionListener(new SelectionListener() {
         log("add listener")
         def widgetSelected(event :SelectionEvent) :Unit = {
@@ -154,6 +171,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
             configurations.insertElementAt(element, position - 1)
           }
           tableViewer.refresh()
+          updateButtons()
           updateLaunchConfigurationDialog()
           
         }
@@ -163,6 +181,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
     
     def buttonDownAction(button :Button) :Unit = {
+      buttonDown = button
       button.addSelectionListener(new SelectionListener() {
         log("remove listener")
         def widgetSelected(event :SelectionEvent) :Unit = {
@@ -182,15 +201,47 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
             configurations.insertElementAt(element, position + 1)
           }
           tableViewer.refresh()
+          updateButtons()
           updateLaunchConfigurationDialog()
         }
         
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
        })
     }
+    def updateButtons() :Unit = {
+      val selected = tableViewer.getStructuredSelection()
+//      if (selected.size() > 0)  buttonRemove.setEnabled(true) else buttonRemove.setEnabled(false)
+      if (selected.size() == 0) {
+        buttonRemove.setEnabled(false)
+        buttonCopy.setEnabled(false)
+        buttonUp.setEnabled(false)
+        buttonDown.setEnabled(false)
+        return
+      }
+      buttonRemove.setEnabled(true)
+      buttonCopy.setEnabled(true)
+      if( selected.size() == 1 && configurations.indexOf(selected.getFirstElement()) == 0) {
+        buttonUp.setEnabled(false)
+      } else {
+        buttonUp.setEnabled(true)
+      }
+      if( selected.size() == 1 && configurations.indexOf(selected.getFirstElement()) == configurations.size() - 1) {
+        buttonDown.setEnabled(false)
+      } else {
+        buttonDown.setEnabled(true)
+      }
+    }
+    
+    def tableSelectAction() :Unit = {
+      tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+        def selectionChanged(event :SelectionChangedEvent) :Unit = {
+          updateButtons()
+        }
+      })
+    }
   }
   
-  class ConfigurationTableContext {
+  private class ConfigurationTableContext {
     var name = "test"
     var mode = executionMode.Run
     var execCount = 1
@@ -212,7 +263,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
-  class NumberValidator extends ICellEditorValidator {
+  private class NumberValidator extends ICellEditorValidator {
     override def isValid(element :Object) :String = {
       val string1 = element.asInstanceOf[String]
       try {
@@ -224,7 +275,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
-  class ModeEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+  private class ModeEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableViewer = viewer//.asInstanceOf[TableViewer]
     
     override protected def getCellEditor(element :Object) :CellEditor = {
@@ -252,7 +303,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
-  class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+  private class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableView = viewer
     val editor = new TextCellEditor(viewer.getTable())
 //    editor.setValidator(new NumberValidator())
@@ -280,7 +331,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
-  class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
+  private class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
     override val tableView = viewer
     override val editor = new TextCellEditor(viewer.getTable())
 //    editor.setValidator(new NumberValidator())
@@ -405,8 +456,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     col5.setEditingSupport(new ExecutionCountEditingSupport(viewer))
     
     viewer.setContentProvider(new ArrayContentProvider())
-//    println(configurations.toString())
     viewer.setInput(configurations)
+    GuiSupport.tableSelectAction()
     
   }
   
@@ -443,7 +494,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     GuiSupport.buttonUpAction(buttonUp)
     GuiSupport.buttonDownAction(buttonDown)
     
-    
+    GuiSupport.updateButtons()
     
   }
   
