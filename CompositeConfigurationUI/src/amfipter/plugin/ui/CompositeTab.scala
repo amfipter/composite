@@ -111,12 +111,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   for( i <- 0 to 3) {
     configurations.add(new LaunchConfigurationElement())
   }
-  
-//  object ExecutionMode extends Enumeration {
-//    val Run, Debug, Profile = Value
-//    
-//  }
-  
+ 
   private object GuiSupport {
     var tableViewer :TableViewer = null
     private var buttonAdd :Button = null
@@ -584,6 +579,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     val newConfigurations = new Vector[LaunchConfigurationElement]
     val storedData = configuration.getAttribute(GuiConstants.storeAttributeName, tempList)
     for( element <- storedData.toArray()) {
+      log(element)
       newConfigurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
     }
     configurations = newConfigurations

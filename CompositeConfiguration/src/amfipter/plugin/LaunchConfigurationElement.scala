@@ -1,13 +1,13 @@
 package amfipter.plugin
 
 import org.eclipse.debug.core.ILaunchConfiguration
+import java.io.PrintWriter
 
 object ExecutionMode extends Enumeration {
   val Run, Debug, Profile = Value
 }
 
 class LaunchConfigurationElement {
-  
   
   var name = ""
   var mode = ExecutionMode.Run
@@ -16,21 +16,21 @@ class LaunchConfigurationElement {
   var delay = 0
   var launchConfiguration :ILaunchConfiguration = null
   
-  def this(serialised :String)  {
+  def this(serialized :String)  {
     this()
-    val values = serialised.split(", ").toBuffer   
+    val values = serialized.split(", ").toBuffer
     delay = values.last.toInt
-    values -= values.last
+    values.trimEnd(1)
     waitTermination = values.last.toBoolean
-    values -= values.last
+    values.trimEnd(1)
     execCount = values.last.toInt
-    values -= values.last
+    values.trimEnd(1)
     values.last match {
       case "Run" => mode = ExecutionMode.Run
       case "Debug" => mode = ExecutionMode.Debug
       case "Profile" => mode = ExecutionMode.Profile
     }
-    values -= values.last
+    values.trimEnd(1)
     name = values.mkString
   }
   
