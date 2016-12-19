@@ -1,13 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: CompositeConfigurationUI
-Bundle-SymbolicName: CompositeConfigurationUI;singleton:=true
+Bundle-Name: CompositeConfiguration
+Bundle-SymbolicName: CompositeConfiguration;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.scala-lang.scala-library,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.debug.core;bundle-version="3.9.1",
- org.eclipse.debug.ui;bundle-version="3.10.2",
- CompositeConfiguration;bundle-version="1.0.0"
-Bundle-Activator: amfipter.plugin.ui.Activator
+ org.eclipse.debug.ui;bundle-version="3.10.2"
