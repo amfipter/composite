@@ -5,6 +5,7 @@ package amfipter.plugin.ui
 import amfipter.plugin.ui
 import amfipter.plugin.LaunchConfigurationElement
 import amfipter.plugin.ExecutionMode
+import amfipter.plugin.CompositeConfiguration
 
 
 import scala.collection.mutable.ArrayBuffer
@@ -89,6 +90,7 @@ import amfipter.plugin.LaunchConfigurationElement
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
   private var configurations = new Vector[LaunchConfigurationElement]//new ArrayBuffer[ConfigurationTableContext]
+  val test = new CompositeConfiguration
   
  
   
