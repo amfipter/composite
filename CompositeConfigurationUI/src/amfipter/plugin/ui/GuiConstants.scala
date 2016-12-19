@@ -21,6 +21,10 @@ object GuiConstants {
   var tableCol3Name = "DELAY"
   var tableCol4Name = "WAIT TERMINATION"
   var tableCol5Name = "EXECUTION COUNT"
-  var storeAttributeName = "composite configuration store prefix"
+  val storeAttributeName = "composite configuration store prefix"
+  val dialogWigth = 500
+  val dialogHeight = 600
+  val dialogOK = 0
+  var dialodAdd = "Add new configurations"
   NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass())
 }

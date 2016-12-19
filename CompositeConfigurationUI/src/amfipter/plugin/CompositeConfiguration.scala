@@ -1,4 +1,4 @@
-package test1
+package amfipter.plugin
 
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate
 import org.eclipse.debug.core.ILaunchConfiguration

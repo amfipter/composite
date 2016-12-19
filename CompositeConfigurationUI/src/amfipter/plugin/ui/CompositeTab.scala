@@ -3,6 +3,8 @@
 package amfipter.plugin.ui
 
 import amfipter.plugin.ui
+import amfipter.plugin.LaunchConfigurationElement
+import amfipter.plugin.ExecutionMode
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions
@@ -12,7 +14,7 @@ import scala.io._
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationFilteredTree;
+import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationFilteredTree
 import org.eclipse.debug.internal.ui.launchConfigurations.LaunchGroupFilter;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchGroup;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.SelectionListener
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.activities.WorkbenchActivityHelper
 
 import org.eclipse.debug.internal.ui.IDebugHelpContextIds;
 import org.eclipse.swt.widgets.Display
@@ -59,6 +62,8 @@ import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.TextCellEditor
 import org.eclipse.jface.viewers.ICellEditorValidator
 import org.eclipse.jface.viewers.ColumnViewer
+import org.eclipse.jface.viewers.ViewerFilter
+import org.eclipse.jface.viewers.Viewer
 import org.eclipse.jface.dialogs.Dialog
 import scala.reflect.io.File
 import java.io.PrintWriter
@@ -71,6 +76,11 @@ import java.io.ObjectOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
+import org.eclipse.debug.internal.ui.DebugUIPlugin
+import org.eclipse.debug.core.ILaunchConfigurationType
+import org.eclipse.jface.viewers.ITreeSelection
+import java.awt.Window
+import amfipter.plugin.LaunchConfigurationElement
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
@@ -79,7 +89,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
   private var configurations = new Vector[LaunchConfigurationElement]//new ArrayBuffer[ConfigurationTableContext]
   
-  private class Logger(fileName :String) {
+ 
+  
+  class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
     def println(x :Any) :Unit = {
       log.println(x.toString())
@@ -97,10 +109,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     configurations.add(new LaunchConfigurationElement())
   }
   
-  object ExecutionMode extends Enumeration {
-    val Run, Debug, Profile = Value
-    
-  }
+//  object ExecutionMode extends Enumeration {
+//    val Run, Debug, Profile = Value
+//    
+//  }
   
   private object GuiSupport {
     var tableViewer :TableViewer = null
@@ -111,30 +123,78 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     private var buttonDown :Button = null
     
     var mainComposite :Composite = null
+    private var selectedConfigurations :ITreeSelection = null
     
-    def addDialog(parent :Composite) :Unit = {
-      class AddDialog(parentShell :Shell) extends Dialog(parentShell) {
-        override def createDialogArea(parent :Composite) :Control = {
-          val container = super.createDialogArea(parent)
-          container
-        }
-        override def configureShell(shell :Shell) :Unit = {
-          super.configureShell(shell)
-          shell.setText("TEST")
-        }
-        override def getInitialSize() :Point = {
-          new Point(450, 300)
+    private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
+      val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
+      val launchGroups = manager.getLaunchGroups
+      val mode = parentMode
+      val filter = new ViewerFilter() {
+        override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
+          if( element.isInstanceOf[ILaunchConfigurationType]) {
+            return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
+          } else if( element.isInstanceOf[ILaunchConfiguration]) {
+            //need check this
+            return DebugUIPlugin.doLaunchConfigurationFiltering(element.asInstanceOf[ILaunchConfiguration]) && 
+              !WorkbenchActivityHelper.filterItem(element.asInstanceOf[ILaunchConfiguration]);
+          } else 
+            return false
         }
       }
-      val dialog = new AddDialog(mainComposite.getShell())
+      
+      override protected def createDialogArea(parent :Composite) :Control = {
+        val container = super.createDialogArea(parent).asInstanceOf[Composite]
+        log(launchGroups)
+//        val launchGroup = 
+        val lTree = new LaunchConfigurationFilteredTree(parent, 
+            SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FILL, 
+            new PatternFilter(), launchGroups(0), null)
+        lTree.createViewControl
+        lTree.getViewer.setFilters(filter)
+        lTree.getViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+          override def selectionChanged(event :SelectionChangedEvent) :Unit = {
+            selectedConfigurations = lTree.getViewer.getStructuredSelection 
+          }
+        })
+        
+            
+        container
+      }
+      override protected def configureShell(shell :Shell) :Unit = {
+        super.configureShell(shell)
+        shell.setText(GuiConstants.dialodAdd)
+      }
+      override protected def getInitialSize() :Point = {
+        new Point(GuiConstants.dialogHeight, GuiConstants.dialogWigth)
+      }
+      }
+    
+  
+    private def buttonAddDialogAction(button :Button) :Unit = {
+      
     }
     
     def buttonAddAction(button :Button) :Unit = {
       buttonAdd = button
       button.addSelectionListener(new SelectionListener() {
+        
         def widgetSelected(event :SelectionEvent) :Unit = {
-          addDialog(mainComposite)
+          log("PRESS ADD")
+          val dialog = new AddDialog(mainComposite.getShell(), launchMode)
+          dialog.create()
+          
+          // scala can't find constants Dialog.OK or Window.OK
+          if( dialog.open() == GuiConstants.dialogOK) {                
+            for( configuration <- selectedConfigurations.toArray()) {
+              val launchElement = new LaunchConfigurationElement
+              launchElement.name = configuration.asInstanceOf[ILaunchConfiguration].getName
+              launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
+              configurations.add(launchElement)
+            }
+          }
           updateButtons()
+          tableViewer.refresh()
+          updateLaunchConfigurationDialog()
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
       })
@@ -181,7 +241,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     def buttonUpAction(button :Button) :Unit = {
       buttonUp = button
       button.addSelectionListener(new SelectionListener() {
-        log("add listener")
+//        log("add listener")
         def widgetSelected(event :SelectionEvent) :Unit = {
           val selected = tableViewer.getStructuredSelection()
           log.println("PRESS")
@@ -257,50 +317,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       tableViewer.setInput(configurations)
     }
   }
-  
-  class LaunchConfigurationElement extends Serializable {
-    var name = "lul " + configurations.size().toString()
-    var mode = ExecutionMode.Run
-    var execCount = 1
-    var waitTermination = false
-    var delay = 0
-    
-    def this(serialised :String)  {
-      this()
-      log(serialised)
-      val values = serialised.split(", ").toBuffer
-      log(values)
-      delay = values.last.toInt
-      values -= values.last
-      waitTermination = values.last.toBoolean
-      values -= values.last
-      execCount = values.last.toInt
-      values -= values.last
-      values.last match {
-        case "Run" => mode = ExecutionMode.Run
-        case "Debug" => mode = ExecutionMode.Debug
-        case "Profile" => mode = ExecutionMode.Profile
-      }
-      values -= values.last
-      name = values.mkString
-    }
-    
-    def this(another :LaunchConfigurationElement) {
-      this()
-      name = another.name
-      mode = another.mode 
-      execCount = another.execCount
-      waitTermination = another.waitTermination
-      delay = another.delay
-    }
-    def serialize() :String = {
-      s"$name, $mode, $execCount, $waitTermination, $delay"
-    }
-    override def toString() :String = {
-      s"LaunchConfigurationElement($name, $mode, $execCount, $waitTermination, $delay)"
-    }
-  }
-  
+   
   private class NumberValidator extends ICellEditorValidator {
     override def isValid(element :Object) :String = {
       val string1 = element.asInstanceOf[String]
@@ -336,6 +353,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       val configContext = element.asInstanceOf[LaunchConfigurationElement]
       val mode = value.asInstanceOf[Int]
       configContext.mode = ExecutionMode(mode)
+//      LaunchConfigurationElement
       tableViewer.update(element, null)
       
     }
