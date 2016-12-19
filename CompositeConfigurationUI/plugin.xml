@@ -3,7 +3,7 @@
 
 <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
     <launchConfigurationTypeImage
-        icon="icons/flask.gif"
+        icon="icons/flask16.gif"
         configTypeID="amfipter.plugin.composite"
         id="amfipter.plugin.image">
     </launchConfigurationTypeImage>

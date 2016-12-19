@@ -11,7 +11,7 @@ object GuiConstants {
   var buttonCopy = "COPY"
   var buttonUp = "UP"
   var buttonDown = "DOWN"
-  val tableCol1Width = 100
+  val tableCol1Width = 200
   val tableCol2Width = 100
   val tableCol3Width = 100
   val tableCol4Width = 150

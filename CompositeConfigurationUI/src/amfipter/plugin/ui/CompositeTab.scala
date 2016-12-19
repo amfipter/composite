@@ -6,6 +6,7 @@ import amfipter.plugin.ui
 import amfipter.plugin.LaunchConfigurationElement
 import amfipter.plugin.ExecutionMode
 
+
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions
 import scala.io._
@@ -147,7 +148,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         log(launchGroups)
 //        val launchGroup = 
         val lTree = new LaunchConfigurationFilteredTree(parent, 
-            SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FILL, 
+            SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION, 
             new PatternFilter(), launchGroups(0), null)
         lTree.createViewControl
         lTree.getViewer.setFilters(filter)
@@ -189,6 +190,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               val launchElement = new LaunchConfigurationElement
               launchElement.name = configuration.asInstanceOf[ILaunchConfiguration].getName
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
+              log("Added")
+              log(launchElement)
               configurations.add(launchElement)
             }
           }
