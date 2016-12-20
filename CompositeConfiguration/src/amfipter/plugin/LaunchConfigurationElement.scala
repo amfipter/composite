@@ -13,7 +13,7 @@ class LaunchConfigurationElement {
   var mode = ExecutionMode.Run
   var execCount = 1
   var waitTermination = false
-  var delay = 0
+  var delay = 0 
   var launchConfiguration :ILaunchConfiguration = null
   
   def this(serialized :String)  {

@@ -20,6 +20,7 @@ import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationFil
 import org.eclipse.debug.internal.ui.launchConfigurations.LaunchGroupFilter;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchGroup;
+import org.eclipse.debug.internal.core.LaunchConfiguration
 
 import org.eclipse.debug.core.ILaunchConfiguration
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy
@@ -67,7 +68,7 @@ import org.eclipse.jface.viewers.ColumnViewer
 import org.eclipse.jface.viewers.ViewerFilter
 import org.eclipse.jface.viewers.Viewer
 import org.eclipse.jface.dialogs.Dialog
-import scala.reflect.io.File
+//import scala.reflect.io.File
 import java.io.PrintWriter
 import java.util.ArrayList
 import java.util.LinkedList
@@ -86,13 +87,22 @@ import amfipter.plugin.LaunchConfigurationElement
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
+class T(t :String) extends LaunchConfiguration(t) {
+//  def this(string :IFile)  {
+//    this()
+//  }
+//  val t = new LaunchConfiguration()
+}
+
 
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
   private var configurations = new Vector[LaunchConfigurationElement]//new ArrayBuffer[ConfigurationTableContext]
-  val test = new CompositeConfiguration
+  private var configurationName = ""
+//  val test = new CompositeConfiguration
+//  val t = new LaunchConfiguration()
   
- 
+//  this.
   
   class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
@@ -126,6 +136,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
+//      DebugUIPlugin.doLaunchConfigurationFiltering(config)
+      
       val mode = parentMode
       val filter = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
@@ -189,6 +201,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
               log("Added")
               log(launchElement)
+//              log(launchElement.launchConfiguration.getLocation)
               configurations.add(launchElement)
             }
           }
@@ -295,10 +308,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       buttonCopy.setEnabled(true)
       if( selected.size() == 1 && configurations.indexOf(selected.getFirstElement()) == 0) {
         buttonUp.setEnabled(false)
+      } else if( selected.size() > 1 && !selected.toArray.filter(x => configurations.indexOf(x) == 0).isEmpty) {
+        buttonUp.setEnabled(false)
       } else {
         buttonUp.setEnabled(true)
       }
       if( selected.size() == 1 && configurations.indexOf(selected.getFirstElement()) == configurations.size() - 1) {
+        buttonDown.setEnabled(false)
+      } else if( selected.size() > 1 && !selected.toArray.filter(x => configurations.indexOf(x) == configurations.size - 1).isEmpty) {
         buttonDown.setEnabled(false)
       } else {
         buttonDown.setEnabled(true)
@@ -575,6 +592,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
   override def initializeFrom(configuration :ILaunchConfiguration) :Unit = {
     log("---initializeFrom---")
+//    log(configuration)
+//    log(configuration.hashCode())
     val tempList = new ArrayList[String]
     val newConfigurations = new Vector[LaunchConfigurationElement]
     val storedData = configuration.getAttribute(GuiConstants.storeAttributeName, tempList)
