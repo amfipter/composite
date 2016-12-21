@@ -133,7 +133,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
-//      DebugUIPlugin.doLaunchConfigurationFiltering(config)
+      
+      
       
       val mode = parentMode
       val filter = new ViewerFilter() {
@@ -143,7 +144,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           } else if( element.isInstanceOf[ILaunchConfiguration]) {
             //need check this
             return DebugUIPlugin.doLaunchConfigurationFiltering(element.asInstanceOf[ILaunchConfiguration]) && 
-              !WorkbenchActivityHelper.filterItem(element.asInstanceOf[ILaunchConfiguration]);
+              !WorkbenchActivityHelper.filterItem(element.asInstanceOf[ILaunchConfiguration]) &&
+              !configurationName.equals(element.asInstanceOf[ILaunchConfiguration].getName)
           } else 
             return false
         }
@@ -430,20 +432,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
     
   private object ConfigurationHelper {
-//    def configurationIdSave() :Unit = {
-//      val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations
-//      for( launchConfiguration <- launchConfugurations) {
-//        var s = ""
-////        log("amfipter.plugin.compositeConfigurationNamePrefix".equals(GuiConstants.storeIdPrefix))
-//        val id = launchConfiguration.getAttribute(GuiConstants.storeIdPrefix, "")
-//        if( id.equals("")) {
-//          val wc = launchConfiguration.getWorkingCopy
-//          wc.setAttribute(GuiConstants.storeIdPrefix, launchConfiguration.getName)
-//          wc.doSave
-//        }       
-//      }
-//    }
-    
     
     def initId(launchConfiguration : ILaunchConfiguration) :Unit = {
       val id = launchConfiguration.getAttribute(GuiConstants.storeIdPrefix, "")
@@ -639,9 +627,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
   override def initializeFrom(configuration :ILaunchConfiguration) :Unit = {
     log("---initializeFrom---")
-//    ConfigurationHelper.configurationNameSave
-//    log(configuration)
-//    log(configuration.hashCode())
+    configurationName = configuration.getName
     val tempList = new ArrayList[String]
     val newConfigurations = new Vector[LaunchConfigurationElement]
     val storedData = configuration.getAttribute(GuiConstants.storeAttributeName, tempList)
@@ -673,6 +659,4 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
 
     
   }
-  
-  
 }
