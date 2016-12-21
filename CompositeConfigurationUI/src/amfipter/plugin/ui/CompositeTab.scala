@@ -289,7 +289,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         def widgetSelected(event :SelectionEvent) :Unit = {
           val selected = tableViewer.getStructuredSelection()
           log.println("PRESS DOWN")
-          for( configuration <- selected.toArray() if configurations.indexOf(configuration) < configurations.size() - 1) {
+          for( configuration <- selected.toArray.reverse if configurations.indexOf(configuration) < configurations.size() - 1) {
             val position = configurations.indexOf(configuration)
             val element =  configurations.get(position)
             configurations.remove(position)
