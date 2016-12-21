@@ -13,6 +13,7 @@ class LaunchConfigurationElement {
   var mode = ExecutionMode.Run
   var execCount = 1
   var waitTermination = false
+  var parallel = false
   var delay = 0 
   var launchConfiguration :ILaunchConfiguration = null
   var id = ""
@@ -20,6 +21,8 @@ class LaunchConfigurationElement {
   def this(serialized :String)  {
     this()
     val values = serialized.split(", ").toBuffer
+    parallel = values.last.toBoolean
+    values.trimEnd(1)
     id = values.last 
     values.trimEnd(1)
     delay = values.last.toInt
@@ -39,15 +42,18 @@ class LaunchConfigurationElement {
   
   def this(another :LaunchConfigurationElement) {
     this()
-    name = another.name
-    mode = another.mode
-    execCount = another.execCount
-    waitTermination = another.waitTermination
-    delay = another.delay
+    name                = another.name
+    mode                = another.mode
+    execCount           = another.execCount
+    waitTermination     = another.waitTermination
+    delay               = another.delay
+    id                  = another.id
+    launchConfiguration = another.launchConfiguration
+    parallel            = another.parallel
     
   }
   def serialize() :String = {
-    s"$name, $mode, $execCount, $waitTermination, $delay, $id"
+    s"$name, $mode, $execCount, $waitTermination, $delay, $id, $parallel"
   }
   override def toString() :String = {
     s"LaunchConfigurationElement($name, $mode, $execCount, $waitTermination, $delay)"

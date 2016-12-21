@@ -15,12 +15,14 @@ object GuiConstants {
   val tableCol2Width = 100
   val tableCol3Width = 100
   val tableCol4Width = 150
-  val tableCol5Width = 100
+  val tableCol5Width = 150
+  val tableCol6Width = 100
   var tableCol1Name = "NAME"
   var tableCol2Name = "MODE"
   var tableCol3Name = "DELAY"
   var tableCol4Name = "WAIT TERMINATION"
   var tableCol5Name = "EXECUTION COUNT"
+  var tableCol6Name = "PARALLEL"
   val storeAttributeName = "amfipter.plugin.compositeConfigurationStorePrefix"
   val storeIdPrefix = "amfipter.plugin.compositeConfigurationNamePrefix"
   val configurationIdStringSize = 42

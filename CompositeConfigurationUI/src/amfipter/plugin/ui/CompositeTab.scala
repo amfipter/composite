@@ -87,6 +87,7 @@ import org.eclipse.jface.viewers.ITreeSelection
 import java.awt.Window
 import amfipter.plugin.LaunchConfigurationElement
 import org.eclipse.debug.core.DebugPlugin
+import org.eclipse.jface.viewers.CheckboxCellEditor
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
@@ -384,6 +385,42 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
+  private class WTEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+    val tableViewer = viewer
+    
+    override protected def getCellEditor(evement :Object) :CellEditor = {
+      new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY)
+    }
+    override protected def canEdit(element :Object) :Boolean = {
+      true
+    }
+    override protected def getValue(element :Object) :Object = {
+      element.asInstanceOf[LaunchConfigurationElement].waitTermination.asInstanceOf[Object]
+    }
+    override protected def setValue(element :Object, value :Object) :Unit = {
+      element.asInstanceOf[LaunchConfigurationElement].waitTermination = value.asInstanceOf[Boolean]
+      viewer.update(element, null)
+    }
+  }
+  
+  private class ParallelEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+    val tableViewer = viewer
+    
+    override protected def getCellEditor(evement :Object) :CellEditor = {
+      new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY)
+    }
+    override protected def canEdit(element :Object) :Boolean = {
+      true
+    }
+    override protected def getValue(element :Object) :Object = {
+      element.asInstanceOf[LaunchConfigurationElement].parallel.asInstanceOf[Object]
+    }
+    override protected def setValue(element :Object, value :Object) :Unit = {
+      element.asInstanceOf[LaunchConfigurationElement].parallel = value.asInstanceOf[Boolean]
+      viewer.update(element, null)
+    }
+  }
+  
   private class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableView = viewer
     val editor = new TextCellEditor(viewer.getTable())
@@ -525,14 +562,16 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         GuiConstants.tableCol2Name,
         GuiConstants.tableCol3Name,
         GuiConstants.tableCol4Name,
-        GuiConstants.tableCol5Name)
+        GuiConstants.tableCol5Name,
+        GuiConstants.tableCol6Name)
         
     val bounds = Array(
         GuiConstants.tableCol1Width,
         GuiConstants.tableCol2Width,
         GuiConstants.tableCol3Width,
         GuiConstants.tableCol4Width,
-        GuiConstants.tableCol5Width)
+        GuiConstants.tableCol5Width,
+        GuiConstants.tableCol6Width)
         
 //    for( i <- 0 to 4) {
 //      val col = createTableViewerColumn(viewer, colNames(i), bounds(i))
@@ -542,6 +581,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     val col3 = createTableViewerColumn(viewer, colNames(2), bounds(2))
     val col4 = createTableViewerColumn(viewer, colNames(3), bounds(3))
     val col5 = createTableViewerColumn(viewer, colNames(4), bounds(4))
+    val col6 = createTableViewerColumn(viewer, colNames(5), bounds(5))
     
     col1.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
@@ -574,6 +614,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       override def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
     })
     
+    col4.setEditingSupport(new WTEditingSupport(viewer))
     col4.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
         val configContext = element.asInstanceOf[LaunchConfigurationElement]
@@ -581,6 +622,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     })
     
+    col5.setEditingSupport(new ExecutionCountEditingSupport(viewer))
     col5.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
         val configContext = element.asInstanceOf[LaunchConfigurationElement]
@@ -588,7 +630,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     })
     
-    col5.setEditingSupport(new ExecutionCountEditingSupport(viewer))
+    col6.setEditingSupport(new ParallelEditingSupport(viewer))
+    col6.setLabelProvider(new ColumnLabelProvider() {
+      override def getText(element :Object) :String = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        configContext.parallel.toString()
+      }
+    })
+    
     
     viewer.setContentProvider(new ArrayContentProvider())
     viewer.setInput(configurations)
