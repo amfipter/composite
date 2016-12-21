@@ -139,6 +139,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       val mode = parentMode
       val filter = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
+          
           if( element.isInstanceOf[ILaunchConfigurationType]) {
             return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
           } else if( element.isInstanceOf[ILaunchConfiguration]) {
@@ -159,6 +160,13 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
             SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION, 
             new PatternFilter(), launchGroups(0), null)
         lTree.createViewControl
+        val filters = lTree.getViewer().getFilters()
+        for( filter <- filters) {
+          if( filter.isInstanceOf[LaunchGroupFilter]) {
+            lTree.getViewer.removeFilter(filter)
+          }
+        }
+        
         lTree.getViewer.setFilters(filter)
         lTree.getViewer.addSelectionChangedListener(new ISelectionChangedListener() {
           override def selectionChanged(event :SelectionChangedEvent) :Unit = {
@@ -191,7 +199,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           
           // scala can't find constants Dialog.OK or Window.OK
           if( dialog.open() == GuiConstants.dialogOK) {                
-            for( configuration <- selectedConfigurations.toArray()) {
+            for( configuration <- selectedConfigurations.toArray() if configuration.isInstanceOf[ILaunchConfiguration]) {
               val launchElement = new LaunchConfigurationElement
               launchElement.name = configuration.asInstanceOf[ILaunchConfiguration].getName
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
@@ -300,7 +308,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       if (selected.size() == 0) {
         buttonRemove.setEnabled(false)
         buttonCopy.setEnabled(false)
-        buttonUp.setEnabled(false)
+        buttonUp.setEnabled(false) 
         buttonDown.setEnabled(false)
         return
       }
@@ -391,23 +399,27 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     override protected def getValue(element :Object) :Object = {
       val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      configContext.delay.asInstanceOf[Object]
+      configContext.delay.toString
     }
     
     override protected def setValue(element :Object, value :Object) :Unit = {
       val configContext = element.asInstanceOf[LaunchConfigurationElement]
-//      println(value.toString())
-//      val mode = value.asInstanceOf[String].toInt
-      configContext.mode = ExecutionMode(0)
-      tableView.update(element, null)
-      
+      try {
+        var delay = value.asInstanceOf[String].toInt
+        if( delay < 0) {
+          delay = 0
+        }
+        configContext.delay = delay
+      } catch {
+        case e :Throwable => configContext.delay = 0
+      }
+      tableView.update(element, null)     
     }
   }
   
   private class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
     override val tableView = viewer
     override val editor = new TextCellEditor(viewer.getTable())
-//    editor.setValidator(new NumberValidator())
     
     override protected def getCellEditor(element :Object) :CellEditor = {
       return editor
@@ -419,13 +431,20 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     override protected def getValue(element :Object) :Object = {
       val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      configContext.execCount.asInstanceOf[Object]
+      configContext.execCount.toString
     }
     
     override protected def setValue(element :Object, value :Object) :Unit = {
       val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      val count = value.asInstanceOf[Int]
-      configContext.execCount = count
+      try {
+        var execCount = value.asInstanceOf[String].toInt
+        if( execCount < 1) {
+          execCount = 1
+        }
+        configContext.execCount = execCount
+      } catch {
+        case e :Throwable => configContext.execCount = 1
+      }
       tableView.update(element, null)
       
     }
@@ -538,6 +557,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     })
     col2.setEditingSupport(new ModeEditingSupport(viewer))
+//    col2.getViewer.setCellModifier(modifier)
     
     col3.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
@@ -547,6 +567,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     })
     
     col3.setEditingSupport(new DelayEditingSupport(viewer))
+    col3.getColumn.addSelectionListener(new SelectionListener() {
+      override def widgetSelected(event :SelectionEvent) :Unit = {
+        
+      }
+      override def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
+    })
     
     col4.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
