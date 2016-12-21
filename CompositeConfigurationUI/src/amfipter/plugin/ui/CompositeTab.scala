@@ -11,6 +11,8 @@ import amfipter.plugin.CompositeConfiguration
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions
 import scala.io._
+import scala.util.control.Breaks._
+import scala.util.Random
 //import scala.collection.immutable.
 
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab
@@ -84,15 +86,10 @@ import org.eclipse.debug.core.ILaunchConfigurationType
 import org.eclipse.jface.viewers.ITreeSelection
 import java.awt.Window
 import amfipter.plugin.LaunchConfigurationElement
+import org.eclipse.debug.core.DebugPlugin
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
-class T(t :String) extends LaunchConfiguration(t) {
-//  def this(string :IFile)  {
-//    this()
-//  }
-//  val t = new LaunchConfiguration()
-}
 
 
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
@@ -179,10 +176,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
       }
     
-  
-    private def buttonAddDialogAction(button :Button) :Unit = {
-      
-    }
+ 
     
     def buttonAddAction(button :Button) :Unit = {
       buttonAdd = button
@@ -201,7 +195,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
               log("Added")
               log(launchElement)
-//              log(launchElement.launchConfiguration.getLocation)
+              log(launchElement.launchConfiguration)
+              
+              ConfigurationHelper.initId(configuration.asInstanceOf[ILaunchConfiguration])
+              launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(GuiConstants.storeIdPrefix, "")
+              
               configurations.add(launchElement)
             }
           }
@@ -431,6 +429,55 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
     
+  private object ConfigurationHelper {
+//    def configurationIdSave() :Unit = {
+//      val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations
+//      for( launchConfiguration <- launchConfugurations) {
+//        var s = ""
+////        log("amfipter.plugin.compositeConfigurationNamePrefix".equals(GuiConstants.storeIdPrefix))
+//        val id = launchConfiguration.getAttribute(GuiConstants.storeIdPrefix, "")
+//        if( id.equals("")) {
+//          val wc = launchConfiguration.getWorkingCopy
+//          wc.setAttribute(GuiConstants.storeIdPrefix, launchConfiguration.getName)
+//          wc.doSave
+//        }       
+//      }
+//    }
+    
+    
+    def initId(launchConfiguration : ILaunchConfiguration) :Unit = {
+      val id = launchConfiguration.getAttribute(GuiConstants.storeIdPrefix, "")
+      if( id.equals("")) {
+        val wc = launchConfiguration.getWorkingCopy
+        wc.setAttribute(GuiConstants.storeIdPrefix, getNewId)
+        wc.doSave
+      }
+    }
+    
+    def findConfigurations() :Unit = {
+      val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations
+      for( launchConfuguration <- launchConfugurations) {
+        val id = launchConfuguration.getAttribute(GuiConstants.storeIdPrefix, "")
+        for(configurationIndex <- 0 until configurations.size) {
+          if( configurations.get(configurationIndex).id.equals(id)) {
+            configurations.get(configurationIndex).launchConfiguration = launchConfuguration
+            configurations.get(configurationIndex).name = launchConfuguration.getName
+//            break
+          }
+        }  
+      }
+    }
+    def getNewId() :String = {
+      val usedId = new ArrayBuffer[String]
+      configurations.toArray().map(x => usedId += x.asInstanceOf[LaunchConfigurationElement].id)
+      val random = new Random
+      var newId = random.alphanumeric.take(GuiConstants.configurationIdStringSize).mkString
+      while(usedId.contains(newId)) {
+        newId = random.alphanumeric.take(GuiConstants.configurationIdStringSize).mkString
+      }
+      newId
+    }
+  }
   
   override def createControl(parent: Composite) :Unit = {
     val comp = new Composite(parent, SWT.NONE)
@@ -592,6 +639,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
   override def initializeFrom(configuration :ILaunchConfiguration) :Unit = {
     log("---initializeFrom---")
+//    ConfigurationHelper.configurationNameSave
 //    log(configuration)
 //    log(configuration.hashCode())
     val tempList = new ArrayList[String]
@@ -602,6 +650,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       newConfigurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
     }
     configurations = newConfigurations
+    ConfigurationHelper.findConfigurations()
     GuiSupport.updateTableData()
     log("=====================")
   }

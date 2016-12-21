@@ -21,7 +21,9 @@ object GuiConstants {
   var tableCol3Name = "DELAY"
   var tableCol4Name = "WAIT TERMINATION"
   var tableCol5Name = "EXECUTION COUNT"
-  val storeAttributeName = "composite configuration store prefix"
+  val storeAttributeName = "amfipter.plugin.compositeConfigurationStorePrefix"
+  val storeIdPrefix = "amfipter.plugin.compositeConfigurationNamePrefix"
+  val configurationIdStringSize = 42
   val dialogWigth = 500
   val dialogHeight = 600
   val dialogOK = 0
