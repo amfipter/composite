@@ -427,6 +427,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       configContext.mode = ExecutionMode(mode)
 //      LaunchConfigurationElement
       tableViewer.update(element, null)
+      updateLaunchConfigurationDialog()
       
     }
   }
@@ -449,6 +450,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     override protected def setValue(element :Object, value :Object) :Unit = {
       element.asInstanceOf[LaunchConfigurationElement].waitTermination = value.asInstanceOf[Boolean]
       viewer.update(element, null)
+      updateLaunchConfigurationDialog()
     }
   }
   
@@ -470,6 +472,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     override protected def setValue(element :Object, value :Object) :Unit = {
       element.asInstanceOf[LaunchConfigurationElement].parallel = value.asInstanceOf[Boolean]
       viewer.update(element, null)
+      updateLaunchConfigurationDialog()
     }
   }
   
@@ -505,7 +508,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       } catch {
         case e :Throwable => configContext.delay = 0
       }
-      tableView.update(element, null)     
+      tableView.update(element, null)  
+      updateLaunchConfigurationDialog()
     }
   }
   
@@ -541,6 +545,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         case e :Throwable => configContext.execCount = 1
       }
       tableView.update(element, null)
+      updateLaunchConfigurationDialog()
       
     }
   }
