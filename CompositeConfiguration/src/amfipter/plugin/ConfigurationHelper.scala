@@ -17,13 +17,13 @@ import scala.collection.mutable.ArrayBuffer
 /** Launch configuration processing utils
  * 
  */
-private object ConfigurationHelper {
+object ConfigurationHelper {
     
   /** Associate launch configuration with uniq identifier
    *  
    * @param launchConfiguration some launch configuration
    */
-  def initId(launchConfiguration : ILaunchConfiguration, configurations :Array[LaunchConfigurationElement]) :Unit = {
+  def initId(launchConfiguration : ILaunchConfiguration, configurations :Array[Object]) :Unit = {
     val id = launchConfiguration.getAttribute(PluginConstants.storeIdPrefix, "")
     if( id.equals("")) {
       val wc = launchConfiguration.getWorkingCopy
@@ -54,7 +54,7 @@ private object ConfigurationHelper {
    *  
    * @return random uniq alphanumeric string
    */
-  def getNewId(configurations :Array[LaunchConfigurationElement]) :String = {
+  def getNewId(configurations :Array[Object]) :String = {
     val usedId = new ArrayBuffer[String]
     configurations.map(x => usedId += x.asInstanceOf[LaunchConfigurationElement].id)
     val random = new Random
@@ -69,7 +69,7 @@ private object ConfigurationHelper {
    * 
    * @return a tuple with answer and array of configuration names in cycle if possible
    */
-  def findCycle(configurationCurrent :ILaunchConfiguration, compositeConfigurationType :ILaunchConfigurationType, configurations :Array[LaunchConfigurationElement]) :(Boolean, Array[String]) = {
+  def findCycle(configurationCurrent :ILaunchConfiguration, compositeConfigurationType :ILaunchConfigurationType, configurations :Array[Object]) :(Boolean, Array[String]) = {
     val configurationStack = new ArrayBuffer[String]
     configurationStack += configurationCurrent.getName
     var cyclePath :Array[String] = null
