@@ -30,5 +30,7 @@ object GuiConstants {
   val dialogHeight = 600
   val dialogOK = 0
   var dialodAdd = "Add new configurations"
+  var cycleError = "Cycle error!"
+  var cycleErrorDescription = "Next launch configurations create cycle."
   NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass())
 }

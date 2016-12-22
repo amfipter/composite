@@ -88,6 +88,9 @@ import java.awt.Window
 import amfipter.plugin.LaunchConfigurationElement
 import org.eclipse.debug.core.DebugPlugin
 import org.eclipse.jface.viewers.CheckboxCellEditor
+import org.eclipse.core.runtime.Status
+import org.eclipse.core.runtime.IStatus
+import org.eclipse.jface.dialogs.ErrorDialog
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
@@ -97,10 +100,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
   private var configurations = new Vector[LaunchConfigurationElement]//new ArrayBuffer[ConfigurationTableContext]
   private var configurationName = ""
+  private var configurationType :ILaunchConfigurationType = null
+  private var configurationCurrent :ILaunchConfiguration = null 
 //  val test = new CompositeConfiguration
 //  val t = new LaunchConfiguration()
   
 //  this.
+  
+  class CompositePluginException(message :String) extends Exception(message)
   
   class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
@@ -134,17 +141,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
-      
-      
-      
       val mode = parentMode
+      
       val filter = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
           
           if( element.isInstanceOf[ILaunchConfigurationType]) {
             return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
           } else if( element.isInstanceOf[ILaunchConfiguration]) {
-            //need check this
             return DebugUIPlugin.doLaunchConfigurationFiltering(element.asInstanceOf[ILaunchConfiguration]) && 
               !WorkbenchActivityHelper.filterItem(element.asInstanceOf[ILaunchConfiguration]) &&
               !configurationName.equals(element.asInstanceOf[ILaunchConfiguration].getName)
@@ -185,7 +189,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       override protected def getInitialSize() :Point = {
         new Point(GuiConstants.dialogHeight, GuiConstants.dialogWigth)
       }
-      }
+    }
+    
     
  
     
@@ -212,6 +217,20 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(GuiConstants.storeIdPrefix, "")
               
               configurations.add(launchElement)
+              val cycle = ConfigurationHelper.findCycle()
+              log(cycle)
+              if(cycle._1.equals(true)) {
+                val cycleElements = new StringBuilder
+                for( element <- cycle._2) {
+                  cycleElements ++= element
+                  cycleElements ++= " -> \n"
+                }
+                cycleElements ++= configurationCurrent.getName
+                log(cycleElements.mkString)
+                val status = new Status(IStatus.ERROR, "amfipter.plugin.ui", cycleElements.mkString)
+                ErrorDialog.openError(mainComposite.getShell, GuiConstants.cycleError, GuiConstants.cycleErrorDescription, status)
+                configurations.remove(launchElement)
+              }
             }
           }
           updateButtons()
@@ -511,6 +530,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         }  
       }
     }
+    
     def getNewId() :String = {
       val usedId = new ArrayBuffer[String]
       configurations.toArray().map(x => usedId += x.asInstanceOf[LaunchConfigurationElement].id)
@@ -520,6 +540,52 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         newId = random.alphanumeric.take(GuiConstants.configurationIdStringSize).mkString
       }
       newId
+    }
+    
+    def findCycle() :(Boolean, Array[String]) = {
+      val configurationStack = new ArrayBuffer[String]
+      configurationStack += configurationCurrent.getName
+      var cyclePath :Array[String] = null
+      var cycle = false
+      def DFS(configs :Array[ILaunchConfiguration]) :Unit = {
+        log(configurationStack)
+        for( config <- configs) {
+          if( configurationStack.contains(config.getName)) {
+            cycle = true
+            cyclePath = configurationStack.toArray
+            return
+          }
+          if( config.getType.equals(configurationType)) {
+            log(config.getName)
+            val newConfigs = getInnerConfigs(config)
+            if( newConfigs.size > 0 && !cycle) {
+              configurationStack += config.getName
+              DFS(newConfigs)
+              configurationStack.trimEnd(1)
+            }
+          }
+        }
+      }
+      DFS(for( element <- configurations.toArray) yield element.asInstanceOf[LaunchConfigurationElement].launchConfiguration)
+      (cycle, cyclePath)
+    }
+    
+    private def getInnerConfigs(compositeConfig :ILaunchConfiguration) :Array[ILaunchConfiguration] = {
+      if(!compositeConfig.getType.equals(configurationType)) {
+        throw new CompositePluginException("Wrong composite type")
+      }
+      val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations.toArray
+      val configs = new ArrayBuffer[ILaunchConfiguration]
+      val storedData = compositeConfig.getAttribute(GuiConstants.storeAttributeName, null.asInstanceOf[ArrayList[String]])
+      for( serializedLaunchElement <- storedData.toArray) {
+        val lElement = new LaunchConfigurationElement(serializedLaunchElement.asInstanceOf[String])
+        try {
+          configs += launchConfugurations.filter(x => x.getAttribute(GuiConstants.storeIdPrefix, null.asInstanceOf[String]).equals(lElement.id))(0)
+        } catch {
+          case e :Throwable => throw new CompositePluginException("Configuration mismatch id")
+        }
+      }
+      configs.toArray
     }
   }
   
@@ -703,16 +769,19 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   override def initializeFrom(configuration :ILaunchConfiguration) :Unit = {
     log("---initializeFrom---")
     configurationName = configuration.getName
+    configurationType = configuration.getType
+    configurationCurrent = configuration
+    
     val tempList = new ArrayList[String]
     val newConfigurations = new Vector[LaunchConfigurationElement]
     val storedData = configuration.getAttribute(GuiConstants.storeAttributeName, tempList)
-    for( element <- storedData.toArray()) {
+    for( element <- storedData.toArray) {
       log(element)
       newConfigurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
     }
     configurations = newConfigurations
-    ConfigurationHelper.findConfigurations()
-    GuiSupport.updateTableData()
+    ConfigurationHelper.findConfigurations
+    GuiSupport.updateTableData
     log("=====================")
   }
   
