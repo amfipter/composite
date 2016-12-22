@@ -95,7 +95,9 @@ import org.eclipse.jface.dialogs.ErrorDialog
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
 
-
+/** Composite configuration GUI
+ *
+ */
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private val launchMode = lMode
   private var configurations = new Vector[LaunchConfigurationElement]//new ArrayBuffer[ConfigurationTableContext]
@@ -107,8 +109,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   
 //  this.
   
+  /** Special plugin's exception class 
+   *
+   */
   class CompositePluginException(message :String) extends Exception(message)
   
+
   class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
     def println(x :Any) :Unit = {
@@ -127,6 +133,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     configurations.add(new LaunchConfigurationElement())
   }
  
+  /** Support GUI class
+   * 
+   */
   private object GuiSupport {
     var tableViewer :TableViewer = null
     private var buttonAdd :Button = null
@@ -138,6 +147,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     var mainComposite :Composite = null
     private var selectedConfigurations :ITreeSelection = null
     
+    /** Dialog class that provides adding new launch configuration
+     *
+     */
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
@@ -194,6 +206,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
  
     
+    /** Creates dialog to adding new launch configuration 
+     * 
+     */
     def buttonAddAction(button :Button) :Unit = {
       buttonAdd = button
       button.addSelectionListener(new SelectionListener() {
@@ -241,6 +256,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       })
     }
     
+    /** Remove selected table's elements
+     * 
+     */
     def buttonRemoveAction(button :Button) :Unit = {
       buttonRemove = button
       button.addSelectionListener(new SelectionListener() {
@@ -260,6 +278,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       })
     }
     
+    /** Copy selected table's elements
+     * 
+     */
     def buttonCopyAction(button :Button) :Unit = {
       buttonCopy = button
       button.addSelectionListener(new SelectionListener() {
@@ -279,6 +300,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       
     }
     
+    /** Shift selected table's elements up
+     * 
+     */
     def buttonUpAction(button :Button) :Unit = {
       buttonUp = button
       button.addSelectionListener(new SelectionListener() {
@@ -302,6 +326,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       
     }
     
+    /** Shift selected table's elements down
+     * 
+     */
     def buttonDownAction(button :Button) :Unit = {
       buttonDown = button
       button.addSelectionListener(new SelectionListener() {
@@ -322,6 +349,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
        })
     }
+    /** Update buttons activity
+     * 
+     */
     def updateButtons() :Unit = {
       val selected = tableViewer.getStructuredSelection()
 //      if (selected.size() > 0)  buttonRemove.setEnabled(true) else buttonRemove.setEnabled(false)
@@ -350,6 +380,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     }
     
+    /** Get selected elements in table and correct buttons activity
+     * 
+     */
     def tableSelectAction() :Unit = {
       tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
         def selectionChanged(event :SelectionChangedEvent) :Unit = {
@@ -358,23 +391,17 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       })
     }
     
+    /** Update main table data with new array
+     * 
+     */
     def updateTableData() :Unit = {
       tableViewer.setInput(configurations)
     }
   }
-   
-  private class NumberValidator extends ICellEditorValidator {
-    override def isValid(element :Object) :String = {
-      val string1 = element.asInstanceOf[String]
-      try {
-        val t = augmentString(string1).toInt
-      } catch {
-        case e: Exception => return "Number only"
-      }
-      null
-    }
-  }
   
+  /** Editing support class for mode column
+   *
+   */
   private class ModeEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableViewer = viewer//.asInstanceOf[TableViewer]
     
@@ -404,6 +431,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
+  /** Editing support class for wait termination column
+   *
+   */
   private class WTEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableViewer = viewer
     
@@ -422,6 +452,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
+  /** Editing support class for parallel column
+   *
+   */
   private class ParallelEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableViewer = viewer
     
@@ -440,6 +473,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
+  /** Editing support class for delay column
+   *
+   */
   private class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
     val tableView = viewer
     val editor = new TextCellEditor(viewer.getTable())
@@ -473,6 +509,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
   
+  /** Editing support class for execution count column
+   *
+   */
   private class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
     override val tableView = viewer
     override val editor = new TextCellEditor(viewer.getTable())
@@ -506,8 +545,15 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     }
   }
     
+  /** Launch configuration processing utils
+   * 
+   */
   private object ConfigurationHelper {
     
+    /** Associate launch configuration with uniq identifier
+     *  
+     * @param launchConfiguration some launch configuration
+     */
     def initId(launchConfiguration : ILaunchConfiguration) :Unit = {
       val id = launchConfiguration.getAttribute(GuiConstants.storeIdPrefix, "")
       if( id.equals("")) {
@@ -517,6 +563,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     }
     
+    /** Association of the inner launch configuration representation and LaunchConfiguration
+     *  
+     * Using uniq configuration id instead of name
+     */
     def findConfigurations() :Unit = {
       val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations
       for( launchConfuguration <- launchConfugurations) {
@@ -531,6 +581,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     }
     
+    /** Generate uniq string identifier 
+     *  
+     * @return random uniq alphanumeric string
+     */
     def getNewId() :String = {
       val usedId = new ArrayBuffer[String]
       configurations.toArray().map(x => usedId += x.asInstanceOf[LaunchConfigurationElement].id)
@@ -542,11 +596,20 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       newId
     }
     
+    /** Provides cycle search in configuration dependencies
+     * 
+     * @return a tuple with answer and array of configuration names in cycle if possible
+     */
     def findCycle() :(Boolean, Array[String]) = {
       val configurationStack = new ArrayBuffer[String]
       configurationStack += configurationCurrent.getName
       var cyclePath :Array[String] = null
       var cycle = false
+      
+      /** Depth-first search in composite configuration dependency graph 
+       * 
+       * @param configs array of composite's enclosed configurations
+       */
       def DFS(configs :Array[ILaunchConfiguration]) :Unit = {
         log(configurationStack)
         for( config <- configs) {
@@ -570,6 +633,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       (cycle, cyclePath)
     }
     
+    /** Get list of inner configurations of composite element
+     *  
+     * @param compositeConfig configuration with composite type
+     * @return array of referring configurations 
+     */
     private def getInnerConfigs(compositeConfig :ILaunchConfiguration) :Array[ILaunchConfiguration] = {
       if(!compositeConfig.getType.equals(configurationType)) {
         throw new CompositePluginException("Wrong composite type")
@@ -608,6 +676,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
   }
   
+  /** Creates plugin's main vision - table with configuratin
+   *  
+   * @param parent composite
+   */
   private def createMainTable(parent :Composite) :Unit = {
     val viewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL )
     GuiSupport.tableViewer = viewer
@@ -711,7 +783,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
   }
   
-  private def createMainButtons(parent: Composite) :Unit = {
+  /** Creates control buttons on main table
+   *  
+   * @param parent composite
+   */
+private def createMainButtons(parent: Composite) :Unit = {
     val gridDatas = new Array[GridData](5)
     for (i <- 0 to 4) {
     gridDatas(i) = new GridData()
@@ -748,6 +824,13 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
   }
   
+  /** Creates table columns
+   *  
+   * @param viewer table viewer
+   * @param title the column's title
+   * @param bound the column's bound
+   * @return column viewer
+   */
   private def createTableViewerColumn(viewer :TableViewer, title :String, bound :Int) :TableViewerColumn = {
     val viewerColumn = new TableViewerColumn(viewer, SWT.NONE)
     val column = viewerColumn.getColumn()
