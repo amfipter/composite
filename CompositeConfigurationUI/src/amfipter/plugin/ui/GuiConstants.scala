@@ -23,9 +23,6 @@ object GuiConstants {
   var tableCol4Name = "WAIT TERMINATION"
   var tableCol5Name = "EXECUTION COUNT"
   var tableCol6Name = "PARALLEL"
-  val storeAttributeName = "amfipter.plugin.compositeConfigurationStorePrefix"
-  val storeIdPrefix = "amfipter.plugin.compositeConfigurationNamePrefix"
-  val configurationIdStringSize = 42
   val dialogWigth = 500
   val dialogHeight = 600
   val dialogOK = 0

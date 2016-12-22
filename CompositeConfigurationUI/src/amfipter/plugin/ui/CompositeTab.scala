@@ -6,6 +6,8 @@ import amfipter.plugin.ui
 import amfipter.plugin.LaunchConfigurationElement
 import amfipter.plugin.ExecutionMode
 import amfipter.plugin.CompositeConfiguration
+import amfipter.plugin.PluginConstants
+import amfipter.plugin.CompositePluginException
 
 
 import scala.collection.mutable.ArrayBuffer
@@ -16,40 +18,40 @@ import scala.util.Random
 //import scala.collection.immutable.
 
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchConfiguration
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy
 import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationFilteredTree
-import org.eclipse.debug.internal.ui.launchConfigurations.LaunchGroupFilter;
-import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.debug.ui.ILaunchGroup;
+import org.eclipse.debug.internal.ui.launchConfigurations.LaunchGroupFilter
+import org.eclipse.debug.ui.DebugUITools
+import org.eclipse.debug.ui.ILaunchGroup
 import org.eclipse.debug.internal.core.LaunchConfiguration
 
 import org.eclipse.debug.core.ILaunchConfiguration
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.accessibility.AccessibleAdapter;
-import org.eclipse.swt.accessibility.AccessibleEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.accessibility.AccessibleAdapter
+import org.eclipse.swt.accessibility.AccessibleEvent
+import org.eclipse.swt.events.ModifyEvent
+import org.eclipse.swt.events.ModifyListener
+import org.eclipse.swt.events.SelectionAdapter
+import org.eclipse.swt.events.SelectionEvent
+import org.eclipse.swt.graphics.Image
 import org.eclipse.swt.graphics.GC
 import org.eclipse.swt.graphics.Point
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.layout.GridData
+import org.eclipse.swt.layout.GridLayout
+import org.eclipse.swt.widgets.Button
+import org.eclipse.swt.widgets.Composite
+import org.eclipse.swt.widgets.Control
+import org.eclipse.swt.widgets.Group
+import org.eclipse.swt.widgets.Shell
+import org.eclipse.swt.widgets.Text
 import org.eclipse.swt.events.SelectionListener
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.PlatformUI
 import org.eclipse.ui.activities.WorkbenchActivityHelper
 
-import org.eclipse.debug.internal.ui.IDebugHelpContextIds;
+import org.eclipse.debug.internal.ui.IDebugHelpContextIds
 import org.eclipse.swt.widgets.Display
 import org.eclipse.ui.dialogs.PatternFilter
 import org.eclipse.jface.viewers.TableLayout
@@ -63,7 +65,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider
 import org.eclipse.jface.viewers.ColumnLabelProvider
 import org.eclipse.jface.viewers.EditingSupport
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.eclipse.jface.viewers.ComboBoxCellEditor
 import org.eclipse.jface.viewers.TextCellEditor
 import org.eclipse.jface.viewers.ICellEditorValidator
 import org.eclipse.jface.viewers.ColumnViewer
@@ -109,10 +111,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   
 //  this.
   
-  /** Special plugin's exception class 
-   *
-   */
-  class CompositePluginException(message :String) extends Exception(message)
+  
   
 
   class Logger(fileName :String) {
@@ -229,7 +228,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               log(launchElement.launchConfiguration)
               
               ConfigurationHelper.initId(configuration.asInstanceOf[ILaunchConfiguration])
-              launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(GuiConstants.storeIdPrefix, "")
+              launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(PluginConstants.storeIdPrefix, "")
               
               configurations.add(launchElement)
               val cycle = ConfigurationHelper.findCycle()
@@ -545,8 +544,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         case e :Throwable => configContext.execCount = 1
       }
       tableView.update(element, null)
-      updateLaunchConfigurationDialog()
-      
+      updateLaunchConfigurationDialog()   
     }
   }
     
@@ -560,10 +558,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      * @param launchConfiguration some launch configuration
      */
     def initId(launchConfiguration : ILaunchConfiguration) :Unit = {
-      val id = launchConfiguration.getAttribute(GuiConstants.storeIdPrefix, "")
+      val id = launchConfiguration.getAttribute(PluginConstants.storeIdPrefix, "")
       if( id.equals("")) {
         val wc = launchConfiguration.getWorkingCopy
-        wc.setAttribute(GuiConstants.storeIdPrefix, getNewId)
+        wc.setAttribute(PluginConstants.storeIdPrefix, getNewId)
         wc.doSave
       }
     }
@@ -575,7 +573,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     def findConfigurations() :Unit = {
       val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations
       for( launchConfuguration <- launchConfugurations) {
-        val id = launchConfuguration.getAttribute(GuiConstants.storeIdPrefix, "")
+        val id = launchConfuguration.getAttribute(PluginConstants.storeIdPrefix, "")
         for(configurationIndex <- 0 until configurations.size) {
           if( configurations.get(configurationIndex).id.equals(id)) {
             configurations.get(configurationIndex).launchConfiguration = launchConfuguration
@@ -594,9 +592,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       val usedId = new ArrayBuffer[String]
       configurations.toArray().map(x => usedId += x.asInstanceOf[LaunchConfigurationElement].id)
       val random = new Random
-      var newId = random.alphanumeric.take(GuiConstants.configurationIdStringSize).mkString
+      var newId = random.alphanumeric.take(PluginConstants.configurationIdStringSize).mkString
       while(usedId.contains(newId)) {
-        newId = random.alphanumeric.take(GuiConstants.configurationIdStringSize).mkString
+        newId = random.alphanumeric.take(PluginConstants.configurationIdStringSize).mkString
       }
       newId
     }
@@ -649,11 +647,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
       val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations.toArray
       val configs = new ArrayBuffer[ILaunchConfiguration]
-      val storedData = compositeConfig.getAttribute(GuiConstants.storeAttributeName, null.asInstanceOf[ArrayList[String]])
+      val storedData = compositeConfig.getAttribute(PluginConstants.storeAttributeName, null.asInstanceOf[ArrayList[String]])
       for( serializedLaunchElement <- storedData.toArray) {
         val lElement = new LaunchConfigurationElement(serializedLaunchElement.asInstanceOf[String])
         try {
-          configs += launchConfugurations.filter(x => x.getAttribute(GuiConstants.storeIdPrefix, null.asInstanceOf[String]).equals(lElement.id))(0)
+          configs += launchConfugurations.filter(x => x.getAttribute(PluginConstants.storeIdPrefix, null.asInstanceOf[String]).equals(lElement.id))(0)
         } catch {
           case e :Throwable => throw new CompositePluginException("Configuration mismatch id")
         }
@@ -792,7 +790,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
    *  
    * @param parent composite
    */
-private def createMainButtons(parent: Composite) :Unit = {
+  private def createMainButtons(parent: Composite) :Unit = {
     val gridDatas = new Array[GridData](5)
     for (i <- 0 to 4) {
     gridDatas(i) = new GridData()
@@ -860,9 +858,8 @@ private def createMainButtons(parent: Composite) :Unit = {
     configurationType = configuration.getType
     configurationCurrent = configuration
     
-    val tempList = new ArrayList[String]
     val newConfigurations = new Vector[LaunchConfigurationElement]
-    val storedData = configuration.getAttribute(GuiConstants.storeAttributeName, tempList)
+    val storedData = configuration.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
     for( element <- storedData.toArray) {
       log(element)
       newConfigurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
@@ -875,20 +872,18 @@ private def createMainButtons(parent: Composite) :Unit = {
   
   override def performApply(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {
     log("---performApply---")
-    configurationCopy.removeAttribute(GuiConstants.storeAttributeName)
+    configurationCopy.removeAttribute(PluginConstants.storeAttributeName)
     val tempList = new ArrayList[String]
     log(configurations)
     for( element <- configurations.toArray()) {
       tempList.add(element.asInstanceOf[LaunchConfigurationElement].serialize())
     }
-    configurationCopy.setAttribute(GuiConstants.storeAttributeName, tempList)
+    configurationCopy.setAttribute(PluginConstants.storeAttributeName, tempList)
     log("=====================")
   
 //    configurationCopy.setAttribute("configurations", configurations.toArray())
   }
   
   override def setDefaults(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {
-
-    
   }
 }
