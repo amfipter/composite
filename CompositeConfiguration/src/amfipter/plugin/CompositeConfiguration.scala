@@ -15,6 +15,7 @@ import scala.collection.mutable.ArrayBuffer
 import java.util.ArrayList
 import java.util.Vector
 import java.io.PrintWriter
+import org.eclipse.core.runtime.SubMonitor
 
 class CompositeConfiguration extends ILaunchConfigurationDelegate {
   private var configurations = new Vector[LaunchConfigurationElement]
@@ -43,36 +44,32 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
     val processes = new ArrayBuffer[ILaunch]()
     initConfigurations
     log(configurations)
-    for( launchConfiguration <- configurations.toArray) {
-      if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].delay > 0) {
-        Thread.sleep(launchConfiguration.asInstanceOf[LaunchConfigurationElement].delay)
-      }
-      
-      for( i <- 0 until launchConfiguration.asInstanceOf[LaunchConfigurationElement].execCount) {
-        val launch = launchConfiguration.asInstanceOf[LaunchConfigurationElement].launchConfiguration.launch(mode, null)
-        if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].parallel) {
-          processes += launch
-        } else {
-          processes += launch
-          waitTermination(launch)
+    try {
+      val localMonitor = SubMonitor.convert(monitor,configuration.getName, ConfigurationHelper.configurationsCount(configurations))
+      for( launchConfiguration <- configurations.toArray if !monitor.isCanceled) {
+        if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].delay > 0) {
+          Thread.sleep(launchConfiguration.asInstanceOf[LaunchConfigurationElement].delay)
         }
+        
+        for( i <- 0 until launchConfiguration.asInstanceOf[LaunchConfigurationElement].execCount) {    
+          val currentLaunch = launchConfiguration.asInstanceOf[LaunchConfigurationElement].launchConfiguration.launch(mode, localMonitor.newChild(1))
+          
+          if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].parallel) {
+            processes += currentLaunch
+          } else {
+            processes += currentLaunch
+            waitTermination(currentLaunch)
+          }
+        }
+        if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].waitTermination) {
+          waitTermination(processes.toArray)
+        }
+        processes.clear
       }
-      if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].waitTermination) {
-        waitTermination(processes.toArray)
-      }
-      processes.clear
+    } finally {
+      monitor.done
     }
     
-  }
-  
-  def launchInnerConfiguration(configuration :ILaunchConfiguration, mode: String, launch :ILaunch, monitor :IProgressMonitor) :Unit = {
-    val configurationLaunch :ILaunch = configuration.launch(mode, monitor)
-    for(debugTarget :IDebugTarget <- configurationLaunch.getDebugTargets()) {
-      launch.addDebugTarget(debugTarget)
-    }
-    for(process :IProcess <- configurationLaunch.getProcesses()) {
-      launch.addProcess(process)
-    }
   }
   
   private def waitTermination(process :ILaunch) :Unit = {
@@ -88,6 +85,7 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
   }
   
   private def initConfigurations() :Unit = {
+    configurations = new Vector[LaunchConfigurationElement]
     val storedData = configurationCurrent.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
     for( element <- storedData.toArray) {
       configurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))

@@ -95,6 +95,7 @@ import org.eclipse.core.runtime.Status
 import org.eclipse.core.runtime.IStatus
 import org.eclipse.jface.dialogs.ErrorDialog
 import org.eclipse.core.runtime.CoreException
+import org.eclipse.debug.core.ILaunchManager
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
@@ -130,9 +131,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
   
   private val log = new Logger("LOG")
-  for( i <- 0 to 3) {
-    configurations.add(new LaunchConfigurationElement())
-  }
  
   /** Support GUI class
    * 
@@ -177,6 +175,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           log(i.getIdentifier)
         }
 //        val launchGroup = 
+        
         val lTree = new LaunchConfigurationFilteredTree(parent, 
             SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION, 
             new PatternFilter(), launchGroup, null)
@@ -429,8 +428,19 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     val tableViewer = viewer//.asInstanceOf[TableViewer]
     
     override protected def getCellEditor(element :Object) :CellEditor = {
-      val modes = Array("Run", "Debug", "Profile")
-      new ComboBoxCellEditor(tableViewer.getTable(), modes)
+      val modes = new ArrayBuffer[String]
+      val configuration = element.asInstanceOf[LaunchConfigurationElement].launchConfiguration
+      
+      if( configuration.supportsMode(ILaunchManager.RUN_MODE)) {
+        modes += "Run"
+      }
+      if( configuration.supportsMode(ILaunchManager.DEBUG_MODE)) {
+        modes += "Debug"
+      }
+      if( configuration.supportsMode(ILaunchManager.PROFILE_MODE)) {
+        modes += "Profile"
+      }
+      new ComboBoxCellEditor(tableViewer.getTable(), modes.toArray[String])
     }
     
     override protected def canEdit(element : Object) :Boolean = {
@@ -447,8 +457,18 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     override protected def setValue(element :Object, value :Object) :Unit = {
       val configContext = element.asInstanceOf[LaunchConfigurationElement]
       val mode = value.asInstanceOf[Int]
-      configContext.mode = ExecutionMode(mode)
-//      LaunchConfigurationElement
+      try {
+        configContext.mode = ExecutionMode(mode)
+      } catch {
+      case e :Throwable => {
+        if( configContext.launchConfiguration.supportsMode(ILaunchManager.RUN_MODE)) {
+          configContext.mode = ExecutionMode.Run  
+        } else if(configContext.launchConfiguration.supportsMode(ILaunchManager.DEBUG_MODE)) {
+          configContext.mode = ExecutionMode.Debug
+        } else if(configContext.launchConfiguration.supportsMode(ILaunchManager.PROFILE_MODE))
+          configContext.mode = ExecutionMode.Profile
+        }
+      }
       tableViewer.update(element, null)
       updateLaunchConfigurationDialog()
       

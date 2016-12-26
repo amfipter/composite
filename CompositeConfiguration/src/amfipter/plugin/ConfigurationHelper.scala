@@ -152,4 +152,12 @@ object ConfigurationHelper {
     }
     configs.toArray
   }
+  
+  def configurationsCount(configurations :Vector[LaunchConfigurationElement]) :Int = {
+    var count = 0
+    for( element <- configurations.toArray) {
+      count += element.asInstanceOf[LaunchConfigurationElement].execCount
+    }
+    count
+  }
 }
