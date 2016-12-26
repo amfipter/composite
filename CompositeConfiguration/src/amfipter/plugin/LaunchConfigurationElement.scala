@@ -56,6 +56,6 @@ class LaunchConfigurationElement {
     s"$name, $mode, $execCount, $waitTermination, $delay, $id, $parallel"
   }
   override def toString() :String = {
-    s"LaunchConfigurationElement($name, $mode, $execCount, $waitTermination, $delay)"
+    s"LaunchConfigurationElement($name, $mode, $execCount, $waitTermination, $delay, $id)"
   }
 }

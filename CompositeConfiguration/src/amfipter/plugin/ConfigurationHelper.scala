@@ -9,6 +9,7 @@ import org.eclipse.debug.core.DebugPlugin
 
 import java.util.Vector
 import java.util.ArrayList
+import java.io.PrintWriter
 
 import scala.util.Random
 import scala.collection.mutable.ArrayBuffer
@@ -18,6 +19,20 @@ import scala.collection.mutable.ArrayBuffer
  * 
  */
 object ConfigurationHelper {
+  
+  class Logger(fileName :String) {
+    val log = new PrintWriter(fileName)
+    def println(x :Any) :Unit = {
+      log.println(x.toString())
+      log.flush()
+    }
+    
+    def apply(x :Any) :Unit = {
+      println(x)
+    }
+    
+  }
+  private val log = new Logger("configHelper")
     
   /** Associate launch configuration with uniq identifier
    *  
@@ -37,16 +52,20 @@ object ConfigurationHelper {
    * Using uniq configuration id instead of name
    */
   def findConfigurations(configurations :Vector[LaunchConfigurationElement]) :Unit = {
-    val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations
+    val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations    
     for( launchConfuguration <- launchConfugurations) {
       val id = launchConfuguration.getAttribute(PluginConstants.storeIdPrefix, "")
       for(configurationIndex <- 0 until configurations.size) {
         if( configurations.get(configurationIndex).id.equals(id)) {
           configurations.get(configurationIndex).launchConfiguration = launchConfuguration
           configurations.get(configurationIndex).name = launchConfuguration.getName
-//            break
+          
         }
       }  
+    }
+    val emptyConfigurations = configurations.toArray.filter(x => x.asInstanceOf[LaunchConfigurationElement].launchConfiguration.eq(null))
+    for( deleted <- emptyConfigurations) {
+      configurations.remove(deleted)
     }
   }
   
@@ -74,6 +93,7 @@ object ConfigurationHelper {
     configurationStack += configurationCurrent.getName
     var cyclePath :Array[String] = null
     var cycle = false
+    log("FIND CYCLE")
     
     /** Depth-first search in composite configuration dependency graph 
      * 
@@ -87,6 +107,7 @@ object ConfigurationHelper {
           cyclePath = configurationStack.toArray
           return
         }
+//        log(config.getName)
         if( config.getType.equals(compositeConfigurationType)) {
 //          log(config.getName)
           val newConfigs = getInnerConfigs(config, compositeConfigurationType)
@@ -119,7 +140,14 @@ object ConfigurationHelper {
       try {
         configs += launchConfugurations.filter(x => x.getAttribute(PluginConstants.storeIdPrefix, null.asInstanceOf[String]).equals(lElement.id))(0)
       } catch {
-        case e :Throwable => throw new CompositePluginException("Configuration mismatch id")
+        case e :Throwable => {
+//          log(launchConfugurations)
+          for( x <- launchConfugurations) {
+            log(x.getAttribute(PluginConstants.storeIdPrefix, null.asInstanceOf[String]))
+          }
+          log(lElement)
+          throw new CompositePluginException(e.getMessage + " Configuration mismatch id")
+        }
       }
     }
     configs.toArray

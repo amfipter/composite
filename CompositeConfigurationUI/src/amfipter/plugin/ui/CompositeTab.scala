@@ -12,11 +12,11 @@ import amfipter.plugin.ConfigurationHelper
 
 
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.JavaConversions._
+//import scala.collection.JavaConversions._
 import scala.io._
 import scala.util.control.Breaks._
 import scala.util.Random
-//import scala.collection.immutable.
+import scala.collection.immutable.List
 
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab
 import org.eclipse.debug.core.ILaunchConfiguration
@@ -94,6 +94,7 @@ import org.eclipse.jface.viewers.CheckboxCellEditor
 import org.eclipse.core.runtime.Status
 import org.eclipse.core.runtime.IStatus
 import org.eclipse.jface.dialogs.ErrorDialog
+import org.eclipse.core.runtime.CoreException
 
 //import scala.sys.process.ProcessBuilderImpl.FileOutput
 
@@ -153,11 +154,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
+      val launchGroup = getLaunchGroup(launchMode)
       val mode = parentMode
       
       val filter = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
-          
+//          return true
           if( element.isInstanceOf[ILaunchConfigurationType]) {
             return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
           } else if( element.isInstanceOf[ILaunchConfiguration]) {
@@ -171,11 +173,13 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       
       override protected def createDialogArea(parent :Composite) :Control = {
         val container = super.createDialogArea(parent).asInstanceOf[Composite]
-        log(launchGroups)
+        for( i <- launchGroups) {
+          log(i.getIdentifier)
+        }
 //        val launchGroup = 
         val lTree = new LaunchConfigurationFilteredTree(parent, 
             SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION, 
-            new PatternFilter(), launchGroups(0), null)
+            new PatternFilter(), launchGroup, null)
         lTree.createViewControl
         val filters = lTree.getViewer().getFilters()
         for( filter <- filters) {
@@ -224,15 +228,27 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               val launchElement = new LaunchConfigurationElement
               launchElement.name = configuration.asInstanceOf[ILaunchConfiguration].getName
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
+              log(configuration.asInstanceOf[ILaunchConfiguration].getModes())
               log("Added")
               log(launchElement)
               log(launchElement.launchConfiguration)
               
               ConfigurationHelper.initId(configuration.asInstanceOf[ILaunchConfiguration], configurations.toArray)
               launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(PluginConstants.storeIdPrefix, "")
-              
+              var cycle :(Boolean, Array[String]) = null
               configurations.add(launchElement)
-              val cycle = ConfigurationHelper.findCycle(configurationCurrent, configurationType, configurations.toArray)
+              try {
+                cycle = ConfigurationHelper.findCycle(configurationCurrent, configurationType, configurations.toArray)
+              } catch {
+                case e :CompositePluginException => {
+                  //plugin can't add new configuration
+                  log("ADD ERROR")
+                  log(e.getMessage)
+                  configurations.remove(launchElement)
+                  return
+                }
+              }
+              
               log(cycle)
               if(cycle._1.equals(true)) {
                 val cycleElements = new StringBuilder
@@ -250,7 +266,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           }
           updateButtons()
           tableViewer.refresh()
-          updateLaunchConfigurationDialog()
+          updateLaunchConfigurationDialog() 
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
       })
@@ -396,6 +412,13 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      */
     def updateTableData() :Unit = {
       tableViewer.setInput(configurations)
+    }
+    
+    /** Generate error message
+     * 
+     */
+    def configLoadError() :Unit = {
+      ErrorDialog.openError(mainComposite.getShell, GuiConstants.loadError, GuiConstants.loadErrorDescription, null)
     }
   }
   
@@ -746,10 +769,18 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     configurationName = configuration.getName
     configurationType = configuration.getType
     configurationCurrent = configuration
+    var storedData :java.util.List[String] = null
     
     val newConfigurations = new Vector[LaunchConfigurationElement]
-    val storedData = configuration.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
-    for( element <- storedData.toArray) {
+    try {
+      storedData = configuration.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
+    } catch {
+      case e: CoreException => {
+        GuiSupport.configLoadError()
+        return
+      }
+    }
+    for( element <- storedData.toArray) { 
       log(element)
       newConfigurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
     }

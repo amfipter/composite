@@ -29,5 +29,7 @@ object GuiConstants {
   var dialodAdd = "Add new configurations"
   var cycleError = "Cycle error!"
   var cycleErrorDescription = "Next launch configurations create cycle."
+  var loadError = "Launch configuration error"
+  var loadErrorDescription = "Can't load configuration"
   NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass())
 }
