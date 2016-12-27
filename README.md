@@ -14,10 +14,13 @@ Opportunities:
 ## Example
 Composite configuration with client-server apps and something else:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite1.png?raw=true)
+
 You can change configuration launch parameters right in table:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite2.png?raw=true)
+
 Sometimes recursive composite configuration can make your life simpler:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite3.png?raw=true)
+
 
 ### Known BUGs
 - Search filter in the addition dialog has unnormal behavior 
