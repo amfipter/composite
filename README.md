@@ -11,4 +11,16 @@
    
    
 
-[](https://github.com/amfipter/composite/composite1.png?raw=true)
+## Example
+Есть клиент, сервер и какая-нибудь ерунда и Вы хотите это запустить без лишних усилий? 
+Пожалуйста:
+![N|Solid](https://github.com/amfipter/composite/blob/master/composite1.png?raw=true)
+Нужно изменить параметры запуска? Скажем, понадобилось с тысячу клиентов и парочка серверов? Сервер хочется отладить?
+Не проблема: (изменяем все прямо в таблице)
+![N|Solid](https://github.com/amfipter/composite/blob/master/composite2.png?raw=true)
+Есть необходимость использовать конфигурации в конфигурациях? 
+![N|Solid](https://github.com/amfipter/composite/blob/master/composite3.png?raw=true)
+
+### Known BUGs
+Не все так идеально, как хотелось бы. На данный момент известно о следующих проблемах:
+- Фильтр добавления конфигураций ведет себя не полностью корректно (в том числе из-за него меню добавления не заполняет фрейм)
