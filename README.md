@@ -1,26 +1,23 @@
 # Composite Configuration Plugin
-Плагин для eclipse. Создает гибридную конфигурацию запуска.
-Возможности:
-   - Исполнение заданного множества конфигураций запуска
-   - Задание приоритета запусков
-   - Задание количества запусков
-   - Ожидание завершения определенного запуска
-   - Параллельный запуск группы конфигураций
-   - Возможность рекурсивного использование гибридных конфигураций
-   - Отслеживание цикличности конфигураций (только для гибридных конфигураций)
-   
-   
+Eclipse plug-in. Creates composite launch configuration
+Opportunities:
 
+   - Execution of the given launch configuration set
+   - Launch priority setting
+   - Launch count setting
+   - Launch termination waiting
+   - Launch parallel groups
+   - Recursive configuration nesting
+   - Composite configuration cycle detection
+
+   
 ## Example
-Есть клиент, сервер и какая-нибудь ерунда и Вы хотите это запустить без лишних усилий? 
-Пожалуйста:
+Composite configuration with client-server apps and something else:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite1.png?raw=true)
-Нужно изменить параметры запуска? Скажем, понадобилось с тысячу клиентов и парочка серверов? Сервер хочется отладить?
-Не проблема: (изменяем все прямо в таблице)
+You can change configuration launch parameters right in table:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite2.png?raw=true)
-Есть необходимость использовать конфигурации в конфигурациях? 
+Sometimes recursive composite configuration can make your life simpler:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite3.png?raw=true)
 
 ### Known BUGs
-Не все так идеально, как хотелось бы. На данный момент известно о следующих проблемах:
-- Фильтр добавления конфигураций ведет себя не полностью корректно (в том числе из-за него меню добавления не заполняет фрейм)
+- Search filter in the addition dialog has unnormal behavior 
