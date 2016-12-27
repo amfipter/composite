@@ -63,6 +63,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private var configurationName = ""
   private var configurationType :ILaunchConfigurationType = null
   private var configurationCurrent :ILaunchConfiguration = null 
+  
+  GuiConstants.init
 
   class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
@@ -148,7 +150,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         shell.setText(GuiConstants.dialodAdd)
       }
       override protected def getInitialSize() :Point = {
-        new Point(GuiConstants.dialogHeight, GuiConstants.dialogWigth)
+        new Point(GuiConstants.DIALOG_HEIGHT, GuiConstants.DIALOG_WIDTH)
       }
     }
     
@@ -166,14 +168,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           dialog.create
           
           // scala can't find constants Dialog.OK or Window.OK
-          if( dialog.open == GuiConstants.dialogOK) {                
+          if( dialog.open == GuiConstants.DIALOG_OK) {                
             for( configuration <- selectedConfigurations.toArray if configuration.isInstanceOf[ILaunchConfiguration]) {
               val launchElement = new LaunchConfigurationElement()
               
               launchElement.name = configuration.asInstanceOf[ILaunchConfiguration].getName
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]             
               ConfigurationHelper.initId(configuration.asInstanceOf[ILaunchConfiguration], configurations.toArray)
-              launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(PluginConstants.storeIdPrefix, "")
+              launchElement.id = configuration.asInstanceOf[ILaunchConfiguration].getAttribute(PluginConstants.STORE_ID_PREFIX, "")
               var cycle :(Boolean, Array[String]) = null
               
               configurations.add(launchElement)
@@ -574,12 +576,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           GuiConstants.tableCol6Name)
           
       val bounds = Array(
-          GuiConstants.tableCol1Width,
-          GuiConstants.tableCol2Width,
-          GuiConstants.tableCol3Width,
-          GuiConstants.tableCol4Width,
-          GuiConstants.tableCol5Width,
-          GuiConstants.tableCol6Width)
+          GuiConstants.TABLE_COL1_WIDTH,
+          GuiConstants.TABLE_COL2_WIDTH,
+          GuiConstants.TABLE_COL3_WIDTH,
+          GuiConstants.TABLE_COL4_WIDTH,
+          GuiConstants.TABLE_COL5_WIDTH,
+          GuiConstants.TABLE_COL6_WIDTH)
           
       val col1 = createTableViewerColumn(viewer, colNames(0), bounds(0))
       val col2 = createTableViewerColumn(viewer, colNames(1), bounds(1))
@@ -739,7 +741,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     val newConfigurations = new Vector[LaunchConfigurationElement]
     
     try {
-      storedData = configuration.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
+      storedData = configuration.getAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, new ArrayList[String])
     } catch {
       case e: CoreException => {
         CompositeTabGui.configLoadError
@@ -757,13 +759,13 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
   
   override def performApply(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {
-    configurationCopy.removeAttribute(PluginConstants.storeAttributeName)
+    configurationCopy.removeAttribute(PluginConstants.STORE_ATTRIBUTE_NAME)
     val tempList = new ArrayList[String]
     
     for( element <- configurations.toArray) {
       tempList.add(element.asInstanceOf[LaunchConfigurationElement].serialize)
     }
-    configurationCopy.setAttribute(PluginConstants.storeAttributeName, tempList)
+    configurationCopy.setAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, tempList)
   }
   
   override def setDefaults(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {

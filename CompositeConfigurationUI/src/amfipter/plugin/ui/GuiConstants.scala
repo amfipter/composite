@@ -2,34 +2,34 @@ package amfipter.plugin.ui
 
 import org.eclipse.osgi.util.NLS
 
-class GuiConstants extends NLS {}
+//class GuiConstants extends NLS {}
 
-object GuiConstants {
-  private val BUNDLE_NAME = "amfipter.plugin.ui.guiconstants"
-  var buttonAdd = "ADD"
-  var buttonRemove = "REMOVE"
-  var buttonCopy = "COPY"
-  var buttonUp = "UP"
-  var buttonDown = "DOWN"
-  val tableCol1Width = 200
-  val tableCol2Width = 100
-  val tableCol3Width = 100
-  val tableCol4Width = 150
-  val tableCol5Width = 150
-  val tableCol6Width = 100
-  var tableCol1Name = "NAME"
-  var tableCol2Name = "MODE"
-  var tableCol3Name = "DELAY"
-  var tableCol4Name = "WAIT TERMINATION"
-  var tableCol5Name = "EXECUTION COUNT"
-  var tableCol6Name = "PARALLEL"
-  val dialogWigth = 500
-  val dialogHeight = 600
-  val dialogOK = 0
+object GuiConstants extends NLS {
+  private val BUNDLE_NAME = "amfipter.plugin.ui.guiconstants" 
+  var buttonAdd = "Add"
+  var buttonRemove = "Remove"
+  var buttonCopy = "Copy"
+  var buttonUp = "Up"
+  var buttonDown = "Down"
+  val TABLE_COL1_WIDTH = 200
+  val TABLE_COL2_WIDTH = 100
+  val TABLE_COL3_WIDTH = 100
+  val TABLE_COL4_WIDTH = 150
+  val TABLE_COL5_WIDTH = 150
+  val TABLE_COL6_WIDTH = 100
+  var tableCol1Name = "Name"
+  var tableCol2Name = "Mode"
+  var tableCol3Name = "Delay"
+  var tableCol4Name = "Wait Termination"
+  var tableCol5Name = "Execution Count"
+  var tableCol6Name = "Parallel"
+  val DIALOG_WIDTH = 500
+  val DIALOG_HEIGHT = 600
+  val DIALOG_OK = 0
   var dialodAdd = "Add new configurations"
   var cycleError = "Cycle error!"
   var cycleErrorDescription = "Next launch configurations create cycle."
   var loadError = "Launch configuration error"
   var loadErrorDescription = "Can't load configuration"
-  NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass())
+  def init() :Unit = NLS.initializeMessages(BUNDLE_NAME, GuiConstants.getClass)
 }

@@ -35,6 +35,7 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
   private val log = new Logger("launch")
   
   override def launch(configuration :ILaunchConfiguration, mode: String, launch :ILaunch, monitor :IProgressMonitor) :Unit = {
+//    monitor.beginTask(configuration.getName, 1)
     configurationName = configuration.getName
     configurationType = configuration.getType
     configurationCurrent = configuration
@@ -47,20 +48,27 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
         if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].delay > 0) {
           Thread.sleep(launchConfiguration.asInstanceOf[LaunchConfigurationElement].delay)
         }
-        
+        log(51)
         for( i <- 0 until launchConfiguration.asInstanceOf[LaunchConfigurationElement].execCount) {    
           val currentLaunch = launchConfiguration.asInstanceOf[LaunchConfigurationElement].launchConfiguration.launch(
               launchConfiguration.asInstanceOf[LaunchConfigurationElement].getMode(), localMonitor.newChild(1))
+          for( debugTarget <- currentLaunch.getDebugTargets) {
+            launch.addDebugTarget(debugTarget)
+          }
+          for( process <- currentLaunch.getProcesses) {
+            launch.addProcess(process)
+          }
           
-          if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].parallel) {
+          if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].parallel || launchConfiguration.asInstanceOf[LaunchConfigurationElement].execCount == 1) {
             processes += currentLaunch
-          } else {
-            processes += currentLaunch
-            waitTermination(currentLaunch)
+          } else { log(currentLaunch.getLaunchConfiguration.getName);
+            //processes += currentLaunch; log(currentLaunch.getLaunchConfiguration.getName)
+            waitTermination(currentLaunch);  log(60)
           }
         }
-        if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].waitTermination) {
-          waitTermination(processes.toArray)
+        log(63)
+        if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].waitTermination) { processes.map(x => log(x.getLaunchConfiguration.getName))
+          waitTermination(processes.toArray); 
         }
         processes.clear
       }
@@ -86,7 +94,7 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
     var storedData :java.util.List[String] = null
     
     try {
-      storedData = configurationCurrent.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
+      storedData = configurationCurrent.getAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, new ArrayList[String])
     } catch {
       case e :Throwable => {
         storedData = new ArrayList[String]
