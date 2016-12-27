@@ -1,14 +1,19 @@
 package amfipter.plugin
 
 import org.eclipse.debug.core.ILaunchConfiguration
-import java.io.PrintWriter
+import org.eclipse.debug.core.ILaunchManager
 
+/** Execution mode (Run / Debug / Profile)
+ * 
+ */
 object ExecutionMode extends Enumeration {
   val Run, Debug, Profile = Value
 }
 
+/** Configuration representation
+ * 
+ */
 class LaunchConfigurationElement {
-  
   var name = ""
   var mode = ExecutionMode.Run
   var execCount = 1
@@ -18,6 +23,10 @@ class LaunchConfigurationElement {
   var launchConfiguration :ILaunchConfiguration = null
   var id = ""
   
+  /** Restore configuration from serialized string
+   * 
+   * @param serialized Special-format string (serialized fields)
+   */
   def this(serialized :String)  {
     this()
     val values = serialized.split(", ").toBuffer
@@ -52,9 +61,27 @@ class LaunchConfigurationElement {
     parallel            = another.parallel
     
   }
+  
+  /** Serialize object fields
+   * 
+   * @return Special-format string (serialized fields)
+   */
   def serialize() :String = {
     s"$name, $mode, $execCount, $waitTermination, $delay, $id, $parallel"
   }
+  
+  /** Get launch mode (canonical view)
+   * 
+   * @return Launch mode
+   */
+  def getMode() :String = {
+    mode match {
+      case ExecutionMode.Run => return ILaunchManager.RUN_MODE
+      case ExecutionMode.Debug => return ILaunchManager.DEBUG_MODE
+      case ExecutionMode.Profile => return ILaunchManager.PROFILE_MODE
+    }
+  }
+  
   override def toString() :String = {
     s"LaunchConfigurationElement($name, $mode, $execCount, $waitTermination, $delay, $id)"
   }

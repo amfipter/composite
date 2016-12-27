@@ -1,19 +1,17 @@
 package amfipter.plugin
 
-import amfipter.plugin.CompositePluginException
+import java.io.PrintWriter
+import java.util.ArrayList
+import java.util.Vector
 
+import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
+
+import org.eclipse.debug.core.DebugPlugin
 import org.eclipse.debug.core.ILaunchConfiguration
 import org.eclipse.debug.core.ILaunchConfigurationType
 import org.eclipse.debug.ui.DebugUITools
-import org.eclipse.debug.core.DebugPlugin
 import org.eclipse.debug.ui.ILaunchGroup
-
-import java.util.Vector
-import java.util.ArrayList
-import java.io.PrintWriter
-
-import scala.util.Random
-import scala.collection.mutable.ArrayBuffer
 
 
 /** Launch configuration processing utils
@@ -37,7 +35,8 @@ object ConfigurationHelper {
     
   /** Associate launch configuration with uniq identifier
    *  
-   * @param launchConfiguration some launch configuration
+   * @param launchConfiguration Some launch configuration
+   * @param configuration Array of LaunchConfigurationElement
    */
   def initId(launchConfiguration : ILaunchConfiguration, configurations :Array[Object]) :Unit = {
     val id = launchConfiguration.getAttribute(PluginConstants.storeIdPrefix, "")
@@ -51,6 +50,8 @@ object ConfigurationHelper {
   /** Association of the inner launch configuration representation and LaunchConfiguration
    *  
    * Using uniq configuration id instead of name
+   * 
+   * @param configuration Array of LaunchConfigurationElement
    */
   def findConfigurations(configurations :Vector[LaunchConfigurationElement]) :Unit = {
     val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations    
@@ -65,6 +66,7 @@ object ConfigurationHelper {
       }  
     }
     val emptyConfigurations = configurations.toArray.filter(x => x.asInstanceOf[LaunchConfigurationElement].launchConfiguration.eq(null))
+    
     for( deleted <- emptyConfigurations) {
       configurations.remove(deleted)
     }
@@ -72,7 +74,8 @@ object ConfigurationHelper {
   
   /** Generate uniq string identifier 
    *  
-   * @return random uniq alphanumeric string
+   * @param configuration Array of LaunchConfigurationElement
+   * @return Random uniq alphanumeric string
    */
   def getNewId(configurations :Array[Object]) :String = {
     val usedId = new ArrayBuffer[String]
@@ -87,31 +90,32 @@ object ConfigurationHelper {
   
   /** Provides cycle search in configuration dependencies
    * 
-   * @return a tuple with answer and array of configuration names in cycle if possible
+   * @param configurationCurrent Reference to the current composite configuration 
+   * @param compositeConfigurationType Composite configuration type
+   * @param configurations Array of LaunchConfigurationElement
+   * @return Tuple with answer and array of configuration names in cycle if possible
    */
   def findCycle(configurationCurrent :ILaunchConfiguration, compositeConfigurationType :ILaunchConfigurationType, configurations :Array[Object]) :(Boolean, Array[String]) = {
     val configurationStack = new ArrayBuffer[String]
     configurationStack += configurationCurrent.getName
     var cyclePath :Array[String] = null
     var cycle = false
-    log("FIND CYCLE")
     
     /** Depth-first search in composite configuration dependency graph 
      * 
-     * @param configs array of composite's enclosed configurations
+     * @param configs Array of composite's enclosed configurations
      */
     def DFS(configs :Array[ILaunchConfiguration]) :Unit = {
-//      log(configurationStack)
       for( config <- configs) {
         if( configurationStack.contains(config.getName)) {
           cycle = true
           cyclePath = configurationStack.toArray
           return
         }
-//        log(config.getName)
+
         if( config.getType.equals(compositeConfigurationType)) {
-//          log(config.getName)
           val newConfigs = getInnerConfigs(config, compositeConfigurationType)
+          
           if( newConfigs.size > 0 && !cycle) {
             configurationStack += config.getName
             DFS(newConfigs)
@@ -126,8 +130,9 @@ object ConfigurationHelper {
   
   /** Get list of inner configurations of composite element
    *  
-   * @param compositeConfig configuration with composite type
-   * @return array of referring configurations 
+   * @param compositeConfig Configuration with composite type
+   * @param compositeConfigurationType Composite configuration type
+   * @return Array of referring configurations 
    */
   private def getInnerConfigs(compositeConfig :ILaunchConfiguration, compositeConfigurationType :ILaunchConfigurationType) :Array[ILaunchConfiguration] = {
     if(!compositeConfig.getType.equals(compositeConfigurationType)) {
@@ -136,24 +141,24 @@ object ConfigurationHelper {
     val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations.toArray
     val configs = new ArrayBuffer[ILaunchConfiguration]
     val storedData = compositeConfig.getAttribute(PluginConstants.storeAttributeName, null.asInstanceOf[ArrayList[String]])
+    
     for( serializedLaunchElement <- storedData.toArray) {
       val lElement = new LaunchConfigurationElement(serializedLaunchElement.asInstanceOf[String])
+      
       try {
         configs += launchConfugurations.filter(x => x.getAttribute(PluginConstants.storeIdPrefix, null.asInstanceOf[String]).equals(lElement.id))(0)
       } catch {
-        case e :Throwable => {
-//          log(launchConfugurations)
-          for( x <- launchConfugurations) {
-            log(x.getAttribute(PluginConstants.storeIdPrefix, null.asInstanceOf[String]))
-          }
-          log(lElement)
-          throw new CompositePluginException(e.getMessage + " Configuration mismatch id")
-        }
+        case e :Throwable => throw new CompositePluginException(e.getMessage + " Configuration mismatch id")
       }
     }
     configs.toArray
   }
   
+  /** All configurations calculation (include repeating)
+   * 
+   * @param configurations Array of LaunchConfigurationElement
+   * @return Configurations count
+   */
   def configurationsCount(configurations :Vector[LaunchConfigurationElement]) :Int = {
     var count = 0
     for( element <- configurations.toArray) {
@@ -162,6 +167,11 @@ object ConfigurationHelper {
     count
   }
   
+  /** Get specified launch group
+   *  
+   * @param launchMode Configuration launch mode
+   * @return Launch group
+   */
   def getLaunchGroup(launchMode :String) :ILaunchGroup = {
     val lGroups = DebugUITools.getLaunchGroups().toArray[ILaunchGroup]
     lGroups.filter(_.getMode().equals(launchMode))(0)

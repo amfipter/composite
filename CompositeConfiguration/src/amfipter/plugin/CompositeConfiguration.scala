@@ -1,21 +1,18 @@
 package amfipter.plugin
 
-import amfipter.plugin.PluginConstants
-
-import org.eclipse.debug.core.model.ILaunchConfigurationDelegate
-import org.eclipse.debug.core.ILaunchConfiguration
-import org.eclipse.debug.core.ILaunchConfigurationType
-import org.eclipse.debug.core.ILaunch
-import org.eclipse.core.runtime.IProgressMonitor
-import org.eclipse.debug.core.model.IDebugTarget
-import org.eclipse.debug.core.model.IProcess
-import org.eclipse.debug.core.ILaunchManager //String mode comparison 
-import scala.collection.mutable.ArrayBuffer
-
+import java.io.PrintWriter
 import java.util.ArrayList
 import java.util.Vector
-import java.io.PrintWriter
+
+
+import scala.collection.mutable.ArrayBuffer
+
+import org.eclipse.core.runtime.IProgressMonitor
 import org.eclipse.core.runtime.SubMonitor
+import org.eclipse.debug.core.ILaunch
+import org.eclipse.debug.core.ILaunchConfiguration
+import org.eclipse.debug.core.ILaunchConfigurationType
+import org.eclipse.debug.core.model.ILaunchConfigurationDelegate
 
 class CompositeConfiguration extends ILaunchConfigurationDelegate {
   private var configurations = new Vector[LaunchConfigurationElement]
@@ -52,7 +49,8 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
         }
         
         for( i <- 0 until launchConfiguration.asInstanceOf[LaunchConfigurationElement].execCount) {    
-          val currentLaunch = launchConfiguration.asInstanceOf[LaunchConfigurationElement].launchConfiguration.launch(mode, localMonitor.newChild(1))
+          val currentLaunch = launchConfiguration.asInstanceOf[LaunchConfigurationElement].launchConfiguration.launch(
+              launchConfiguration.asInstanceOf[LaunchConfigurationElement].getMode(), localMonitor.newChild(1))
           
           if( launchConfiguration.asInstanceOf[LaunchConfigurationElement].parallel) {
             processes += currentLaunch
@@ -68,8 +66,7 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
       }
     } finally {
       monitor.done
-    }
-    
+    }    
   }
   
   private def waitTermination(process :ILaunch) :Unit = {
@@ -86,7 +83,16 @@ class CompositeConfiguration extends ILaunchConfigurationDelegate {
   
   private def initConfigurations() :Unit = {
     configurations = new Vector[LaunchConfigurationElement]
-    val storedData = configurationCurrent.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
+    var storedData :java.util.List[String] = null
+    
+    try {
+      storedData = configurationCurrent.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
+    } catch {
+      case e :Throwable => {
+        storedData = new ArrayList[String]
+        //can't read configuration
+      }
+    }
     for( element <- storedData.toArray) {
       configurations.add(new LaunchConfigurationElement(element.asInstanceOf[String]))
     }
