@@ -6,6 +6,7 @@ import org.eclipse.debug.core.ILaunchConfiguration
 import org.eclipse.debug.core.ILaunchConfigurationType
 import org.eclipse.debug.ui.DebugUITools
 import org.eclipse.debug.core.DebugPlugin
+import org.eclipse.debug.ui.ILaunchGroup
 
 import java.util.Vector
 import java.util.ArrayList
@@ -159,5 +160,10 @@ object ConfigurationHelper {
       count += element.asInstanceOf[LaunchConfigurationElement].execCount
     }
     count
+  }
+  
+  def getLaunchGroup(launchMode :String) :ILaunchGroup = {
+    val lGroups = DebugUITools.getLaunchGroups().toArray[ILaunchGroup]
+    lGroups.filter(_.getMode().equals(launchMode))(0)
   }
 }

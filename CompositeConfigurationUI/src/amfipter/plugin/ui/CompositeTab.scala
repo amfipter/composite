@@ -110,7 +110,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private var configurationType :ILaunchConfigurationType = null
   private var configurationCurrent :ILaunchConfiguration = null 
 //  val test = new CompositeConfiguration
-//  val t = new LaunchConfiguration()
+//  val t = new LaunchConfiguration
   
 //  this.
   
@@ -120,8 +120,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   class Logger(fileName :String) {
     val log = new PrintWriter(fileName)
     def println(x :Any) :Unit = {
-      log.println(x.toString())
-      log.flush()
+      log.println(x.toString)
+      log.flush
     }
     
     def apply(x :Any) :Unit = {
@@ -156,7 +156,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
       val mode = parentMode
-      val launchGroup = getLaunchGroup(mode)
+      val launchGroup = ConfigurationHelper.getLaunchGroup(mode)
       
       
       val filter = new ViewerFilter() {
@@ -184,7 +184,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
             SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION, 
             new PatternFilter(), launchGroup, null)
         lTree.createViewControl
-        val filters = lTree.getViewer().getFilters()
+        val filters = lTree.getViewer.getFilters
         for( filter <- filters) {
           if( filter.isInstanceOf[LaunchGroupFilter]) {
             lTree.getViewer.removeFilter(filter)
@@ -221,16 +221,16 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         
         def widgetSelected(event :SelectionEvent) :Unit = {
           log("PRESS ADD")
-          val dialog = new AddDialog(mainComposite.getShell(), launchMode)
-          dialog.create()
+          val dialog = new AddDialog(mainComposite.getShell, launchMode)
+          dialog.create
           
           // scala can't find constants Dialog.OK or Window.OK
-          if( dialog.open() == GuiConstants.dialogOK) {                
-            for( configuration <- selectedConfigurations.toArray() if configuration.isInstanceOf[ILaunchConfiguration]) {
+          if( dialog.open == GuiConstants.dialogOK) {                
+            for( configuration <- selectedConfigurations.toArray if configuration.isInstanceOf[ILaunchConfiguration]) {
               val launchElement = new LaunchConfigurationElement
               launchElement.name = configuration.asInstanceOf[ILaunchConfiguration].getName
               launchElement.launchConfiguration = configuration.asInstanceOf[ILaunchConfiguration]
-              log(configuration.asInstanceOf[ILaunchConfiguration].getModes())
+              log(configuration.asInstanceOf[ILaunchConfiguration].getModes)
               log("Added")
               log(launchElement)
               log(launchElement.launchConfiguration)
@@ -266,9 +266,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               }
             }
           }
-          updateButtons()
-          tableViewer.refresh()
-          updateLaunchConfigurationDialog() 
+          tableViewer.refresh()     //scala don't allow call refresh without brackets 
+          updateButtons
+          updateLaunchConfigurationDialog 
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
       })
@@ -282,16 +282,16 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       buttonRemove = button
       button.addSelectionListener(new SelectionListener() {
         def widgetSelected(event :SelectionEvent) :Unit = {
-          val selected = tableViewer.getStructuredSelection()
-          for(element <- selected.toArray()) {
+          val selected = tableViewer.getStructuredSelection
+          for(element <- selected.toArray) {
 //            log(element)
 //            configurations.remove(element)
             configurations.remove(element.asInstanceOf[LaunchConfigurationElement])
           }
           val t = true
-          tableViewer.refresh()  
-          updateButtons()
-          updateLaunchConfigurationDialog()
+          tableViewer.refresh()   //scala don't allow call refresh without brackets 
+          updateButtons
+          updateLaunchConfigurationDialog
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
       })
@@ -305,15 +305,15 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       buttonCopy = button
       button.addSelectionListener(new SelectionListener() {
         def widgetSelected(event :SelectionEvent) :Unit = {
-          val selected = tableViewer.getStructuredSelection()
-          for(element <- selected.toArray()) {
+          val selected = tableViewer.getStructuredSelection
+          for(element <- selected.toArray) {
             val copy = new LaunchConfigurationElement(element.asInstanceOf[LaunchConfigurationElement])
             val position = configurations.indexOf(element.asInstanceOf[LaunchConfigurationElement])
             configurations.insertElementAt(copy, position)
           }
-          tableViewer.refresh()
-          updateButtons()
-          updateLaunchConfigurationDialog()
+          tableViewer.refresh()    //scala don't allow call refresh without brackets 
+          updateButtons
+          updateLaunchConfigurationDialog
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
       })
@@ -329,17 +329,17 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       button.addSelectionListener(new SelectionListener() {
 //        log("add listener")
         def widgetSelected(event :SelectionEvent) :Unit = {
-          val selected = tableViewer.getStructuredSelection()
+          val selected = tableViewer.getStructuredSelection
           log.println("PRESS")
-          for( configuration <- selected.toArray() if configurations.indexOf(configuration) > 0) {
+          for( configuration <- selected.toArray if configurations.indexOf(configuration) > 0) {
             val position = configurations.indexOf(configuration)
             val element = configurations.get(position)
             configurations.remove(position)
             configurations.insertElementAt(element, position - 1)
           }
-          tableViewer.refresh()
-          updateButtons()
-          updateLaunchConfigurationDialog()
+          tableViewer.refresh()    //scala don't allow call refresh without brackets 
+          updateButtons
+          updateLaunchConfigurationDialog
           
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
@@ -355,17 +355,17 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       buttonDown = button
       button.addSelectionListener(new SelectionListener() {
         def widgetSelected(event :SelectionEvent) :Unit = {
-          val selected = tableViewer.getStructuredSelection()
+          val selected = tableViewer.getStructuredSelection
           log.println("PRESS DOWN")
-          for( configuration <- selected.toArray.reverse if configurations.indexOf(configuration) < configurations.size() - 1) {
+          for( configuration <- selected.toArray.reverse if configurations.indexOf(configuration) < configurations.size - 1) {
             val position = configurations.indexOf(configuration)
             val element =  configurations.get(position)
             configurations.remove(position)
             configurations.insertElementAt(element, position + 1)
           }
-          tableViewer.refresh()
-          updateButtons()
-          updateLaunchConfigurationDialog()
+          tableViewer.refresh()    //scala don't allow call refresh without brackets 
+          updateButtons
+          updateLaunchConfigurationDialog
         }
         
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
@@ -376,9 +376,9 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      * 
      */
     def updateButtons() :Unit = {
-      val selected = tableViewer.getStructuredSelection()
-//      if (selected.size() > 0)  buttonRemove.setEnabled(true) else buttonRemove.setEnabled(false)
-      if (selected.size() == 0) {
+      val selected = tableViewer.getStructuredSelection
+//      if (selected.size > 0)  buttonRemove.setEnabled(true) else buttonRemove.setEnabled(false)
+      if (selected.size == 0) {
         buttonRemove.setEnabled(false)
         buttonCopy.setEnabled(false)
         buttonUp.setEnabled(false) 
@@ -387,16 +387,16 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
       buttonRemove.setEnabled(true)
       buttonCopy.setEnabled(true)
-      if( selected.size() == 1 && configurations.indexOf(selected.getFirstElement()) == 0) {
+      if( selected.size == 1 && configurations.indexOf(selected.getFirstElement) == 0) {
         buttonUp.setEnabled(false)
-      } else if( selected.size() > 1 && !selected.toArray.filter(x => configurations.indexOf(x) == 0).isEmpty) {
+      } else if( selected.size > 1 && !selected.toArray.filter(x => configurations.indexOf(x) == 0).isEmpty) {
         buttonUp.setEnabled(false)
       } else {
         buttonUp.setEnabled(true)
       }
-      if( selected.size() == 1 && configurations.indexOf(selected.getFirstElement()) == configurations.size() - 1) {
+      if( selected.size == 1 && configurations.indexOf(selected.getFirstElement) == configurations.size - 1) {
         buttonDown.setEnabled(false)
-      } else if( selected.size() > 1 && !selected.toArray.filter(x => configurations.indexOf(x) == configurations.size - 1).isEmpty) {
+      } else if( selected.size > 1 && !selected.toArray.filter(x => configurations.indexOf(x) == configurations.size - 1).isEmpty) {
         buttonDown.setEnabled(false)
       } else {
         buttonDown.setEnabled(true)
@@ -409,7 +409,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     def tableSelectAction() :Unit = {
       tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
         def selectionChanged(event :SelectionChangedEvent) :Unit = {
-          updateButtons()
+          updateButtons
         }
       })
     }
@@ -448,7 +448,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         if( configuration.supportsMode(ILaunchManager.PROFILE_MODE)) {
           modes += "Profile"
         }
-        new ComboBoxCellEditor(tableViewer.getTable(), modes.toArray[String])
+        new ComboBoxCellEditor(tableViewer.getTable, modes.toArray[String])
       }
       
       override protected def canEdit(element : Object) :Boolean = {
@@ -478,7 +478,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           }
         }
         tableViewer.update(element, null)
-        updateLaunchConfigurationDialog()
+        updateLaunchConfigurationDialog
         
       }
     }
@@ -502,7 +502,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       override protected def setValue(element :Object, value :Object) :Unit = {
         element.asInstanceOf[LaunchConfigurationElement].waitTermination = value.asInstanceOf[Boolean]
         viewer.update(element, null)
-        updateLaunchConfigurationDialog()
+        updateLaunchConfigurationDialog
       }
     }
     
@@ -525,7 +525,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       override protected def setValue(element :Object, value :Object) :Unit = {
         element.asInstanceOf[LaunchConfigurationElement].parallel = value.asInstanceOf[Boolean]
         viewer.update(element, null)
-        updateLaunchConfigurationDialog()
+        updateLaunchConfigurationDialog
       }
     }
     
@@ -535,8 +535,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      */
     class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
       val tableView = viewer
-      val editor = new TextCellEditor(viewer.getTable())
-  //    editor.setValidator(new NumberValidator())
+      val editor = new TextCellEditor(viewer.getTable)
+  //    editor.setValidator(new NumberValidator)
       
       override protected def getCellEditor(element :Object) :CellEditor = {
         editor
@@ -563,7 +563,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           case e :Throwable => configContext.delay = 0
         }
         tableView.update(element, null)  
-        updateLaunchConfigurationDialog()
+        updateLaunchConfigurationDialog
       }
     }
     
@@ -573,7 +573,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      */
     class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
       override val tableView = viewer
-      override val editor = new TextCellEditor(viewer.getTable())
+      override val editor = new TextCellEditor(viewer.getTable)
       
       override protected def getCellEditor(element :Object) :CellEditor = {
         return editor
@@ -600,209 +600,192 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           case e :Throwable => configContext.execCount = 1
         }
         tableView.update(element, null)
-        updateLaunchConfigurationDialog()   
+        updateLaunchConfigurationDialog   
       }
     }
+    
+    /** Creates plugin's main vision - table with configuratin
+     *  
+     * @param parent composite
+     */
+    def createMainTable(parent :Composite) :Unit = {
+      val viewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL )
+      GuiSupport.tableViewer = viewer
+      val layout = new TableLayout()
+      val gridData = new GridData()
+      gridData.verticalAlignment = GridData.FILL
+      gridData.horizontalSpan = 2
+      gridData.grabExcessHorizontalSpace = true
+      gridData.grabExcessVerticalSpace = true
+      gridData.horizontalAlignment = GridData.FILL
+      viewer.getControl.setLayoutData(gridData)
+      viewer.getTable.setLinesVisible(true)
+      viewer.getTable.setHeaderVisible(true)
+      
+  
+      val colNames = Array(
+          GuiConstants.tableCol1Name,
+          GuiConstants.tableCol2Name,
+          GuiConstants.tableCol3Name,
+          GuiConstants.tableCol4Name,
+          GuiConstants.tableCol5Name,
+          GuiConstants.tableCol6Name)
+          
+      val bounds = Array(
+          GuiConstants.tableCol1Width,
+          GuiConstants.tableCol2Width,
+          GuiConstants.tableCol3Width,
+          GuiConstants.tableCol4Width,
+          GuiConstants.tableCol5Width,
+          GuiConstants.tableCol6Width)
+          
+      val col1 = createTableViewerColumn(viewer, colNames(0), bounds(0))
+      val col2 = createTableViewerColumn(viewer, colNames(1), bounds(1))
+      val col3 = createTableViewerColumn(viewer, colNames(2), bounds(2))
+      val col4 = createTableViewerColumn(viewer, colNames(3), bounds(3))
+      val col5 = createTableViewerColumn(viewer, colNames(4), bounds(4))
+      val col6 = createTableViewerColumn(viewer, colNames(5), bounds(5))
+      
+      col1.setLabelProvider(new ColumnLabelProvider() {
+        override def getText(element :Object) :String = {
+          val configContext = element.asInstanceOf[LaunchConfigurationElement]
+          configContext.name
+        }
+      })
+      
+      col2.setLabelProvider(new ColumnLabelProvider() {
+        override def getText(element :Object) :String = {
+          val configContext = element.asInstanceOf[LaunchConfigurationElement]
+          configContext.mode.toString
+        }
+      })
+      col2.setEditingSupport(new GuiSupport.ModeEditingSupport(viewer))
+      
+      col3.setLabelProvider(new ColumnLabelProvider() {
+        override def getText(element :Object) :String = {
+          val configContext = element.asInstanceOf[LaunchConfigurationElement]
+          configContext.delay.toString
+        }
+      })
+      
+      col3.setEditingSupport(new GuiSupport.DelayEditingSupport(viewer))
+      col3.getColumn.addSelectionListener(new SelectionListener() {
+        override def widgetSelected(event :SelectionEvent) :Unit = {
+          
+        }
+        override def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
+      })
+      
+      col4.setEditingSupport(new GuiSupport.WTEditingSupport(viewer))
+      col4.setLabelProvider(new ColumnLabelProvider() {
+        override def getText(element :Object) :String = {
+          val configContext = element.asInstanceOf[LaunchConfigurationElement]
+          configContext.waitTermination.toString
+        }
+      })
+      
+      col5.setEditingSupport(new GuiSupport.ExecutionCountEditingSupport(viewer))
+      col5.setLabelProvider(new ColumnLabelProvider() {
+        override def getText(element :Object) :String = {
+          val configContext = element.asInstanceOf[LaunchConfigurationElement]
+          configContext.execCount.toString
+        }
+      })
+      
+      col6.setEditingSupport(new GuiSupport.ParallelEditingSupport(viewer))
+      col6.setLabelProvider(new ColumnLabelProvider() {
+        override def getText(element :Object) :String = {
+          val configContext = element.asInstanceOf[LaunchConfigurationElement]
+          configContext.parallel.toString
+        }
+      })
+      
+      
+      viewer.setContentProvider(new ArrayContentProvider())
+      viewer.setInput(configurations)
+      GuiSupport.tableSelectAction
+      
+    }
+    
+    /** Creates control buttons on main table
+     *  
+     * @param parent composite
+     */
+    def createMainButtons(parent: Composite) :Unit = {
+      val gridDatas = new Array[GridData](5)
+      for (i <- 0 to 4) {
+      gridDatas(i) = new GridData()
+      gridDatas(i).horizontalAlignment = GridData.FILL
+      gridDatas(i).grabExcessHorizontalSpace = true
+      }
+  
+      
+      val buttonAdd = new Button(parent, SWT.PUSH)
+      val buttonRemove = new Button(parent, SWT.PUSH)
+      val buttonCopy = new Button(parent, SWT.PUSH)
+      val buttonUp = new Button(parent, SWT.PUSH)
+      val buttonDown = new Button(parent, SWT.PUSH)
+      
+      buttonAdd.setText(GuiConstants.buttonAdd)
+      buttonRemove.setText(GuiConstants.buttonRemove)
+      buttonCopy.setText(GuiConstants.buttonCopy)
+      buttonUp.setText(GuiConstants.buttonUp)
+      buttonDown.setText(GuiConstants.buttonDown)
+      
+      buttonAdd.setLayoutData(gridDatas(0))
+      buttonRemove.setLayoutData(gridDatas(1))
+      buttonCopy.setLayoutData(gridDatas(2))
+      buttonUp.setLayoutData(gridDatas(3))
+      buttonDown.setLayoutData(gridDatas(4))
+      
+      GuiSupport.buttonAddAction(buttonAdd)
+      GuiSupport.buttonRemoveAction(buttonRemove)
+      GuiSupport.buttonCopyAction(buttonCopy)
+      GuiSupport.buttonUpAction(buttonUp)
+      GuiSupport.buttonDownAction(buttonDown)
+      
+      GuiSupport.updateButtons
+      
+    }
+    
+    /** Creates table columns
+     *  
+     * @param viewer table viewer
+     * @param title the column's title
+     * @param bound the column's bound
+     * @return column viewer
+     */
+    private def createTableViewerColumn(viewer :TableViewer, title :String, bound :Int) :TableViewerColumn = {
+      val viewerColumn = new TableViewerColumn(viewer, SWT.NONE)
+      val column = viewerColumn.getColumn
+      column.setText(title)
+      column.setWidth(bound)
+      column.setResizable(true)
+      column.setMoveable(true)
+      viewerColumn
+    }
   }
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   
   override def createControl(parent: Composite) :Unit = {
     val comp = new Composite(parent, SWT.NONE)
     comp.setLayout(new GridLayout(1, true))
-    comp.setFont(parent.getFont())
+    comp.setFont(parent.getFont)
     setControl(comp)
     
-    val launchGroup = getLaunchGroup(launchMode)
-    createMainTable(comp)
+    GuiSupport.createMainTable(comp)
     val buttonComp = new Composite(comp, SWT.NONE)
     val buttonGridLayout = new GridLayout(5, true)
     //buttonGridLayout.
     buttonComp.setLayout(new GridLayout(5, true))
-    buttonComp.setFont(parent.getFont())
-    createMainButtons(buttonComp)
-    GuiSupport.mainComposite = parent
-    
-    
+    buttonComp.setFont(parent.getFont)
+    GuiSupport.createMainButtons(buttonComp)
+    GuiSupport.mainComposite = parent  
   }
   
-  /** Creates plugin's main vision - table with configuratin
-   *  
-   * @param parent composite
-   */
-  private def createMainTable(parent :Composite) :Unit = {
-    val viewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL )
-    GuiSupport.tableViewer = viewer
-    val layout = new TableLayout()
-    val gridData = new GridData()
-    gridData.verticalAlignment = GridData.FILL
-    gridData.horizontalSpan = 2
-    gridData.grabExcessHorizontalSpace = true
-    gridData.grabExcessVerticalSpace = true
-    gridData.horizontalAlignment = GridData.FILL
-    viewer.getControl().setLayoutData(gridData)
-    viewer.getTable.setLinesVisible(true)
-    viewer.getTable.setHeaderVisible(true)
-    
 
-    val colNames = Array(
-        GuiConstants.tableCol1Name,
-        GuiConstants.tableCol2Name,
-        GuiConstants.tableCol3Name,
-        GuiConstants.tableCol4Name,
-        GuiConstants.tableCol5Name,
-        GuiConstants.tableCol6Name)
-        
-    val bounds = Array(
-        GuiConstants.tableCol1Width,
-        GuiConstants.tableCol2Width,
-        GuiConstants.tableCol3Width,
-        GuiConstants.tableCol4Width,
-        GuiConstants.tableCol5Width,
-        GuiConstants.tableCol6Width)
-        
-//    for( i <- 0 to 4) {
-//      val col = createTableViewerColumn(viewer, colNames(i), bounds(i))
-//    }
-    val col1 = createTableViewerColumn(viewer, colNames(0), bounds(0))
-    val col2 = createTableViewerColumn(viewer, colNames(1), bounds(1))
-    val col3 = createTableViewerColumn(viewer, colNames(2), bounds(2))
-    val col4 = createTableViewerColumn(viewer, colNames(3), bounds(3))
-    val col5 = createTableViewerColumn(viewer, colNames(4), bounds(4))
-    val col6 = createTableViewerColumn(viewer, colNames(5), bounds(5))
-    
-    col1.setLabelProvider(new ColumnLabelProvider() {
-      override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[LaunchConfigurationElement]
-        configContext.name
-      }
-    })
-    
-    col2.setLabelProvider(new ColumnLabelProvider() {
-      override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[LaunchConfigurationElement]
-        configContext.mode.toString()
-      }
-    })
-    col2.setEditingSupport(new GuiSupport.ModeEditingSupport(viewer))
-//    col2.getViewer.setCellModifier(modifier)
-    
-    col3.setLabelProvider(new ColumnLabelProvider() {
-      override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[LaunchConfigurationElement]
-        configContext.delay.toString()
-      }
-    })
-    
-    col3.setEditingSupport(new GuiSupport.DelayEditingSupport(viewer))
-    col3.getColumn.addSelectionListener(new SelectionListener() {
-      override def widgetSelected(event :SelectionEvent) :Unit = {
-        
-      }
-      override def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
-    })
-    
-    col4.setEditingSupport(new GuiSupport.WTEditingSupport(viewer))
-    col4.setLabelProvider(new ColumnLabelProvider() {
-      override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[LaunchConfigurationElement]
-        configContext.waitTermination.toString()
-      }
-    })
-    
-    col5.setEditingSupport(new GuiSupport.ExecutionCountEditingSupport(viewer))
-    col5.setLabelProvider(new ColumnLabelProvider() {
-      override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[LaunchConfigurationElement]
-        configContext.execCount.toString()
-      }
-    })
-    
-    col6.setEditingSupport(new GuiSupport.ParallelEditingSupport(viewer))
-    col6.setLabelProvider(new ColumnLabelProvider() {
-      override def getText(element :Object) :String = {
-        val configContext = element.asInstanceOf[LaunchConfigurationElement]
-        configContext.parallel.toString()
-      }
-    })
-    
-    
-    viewer.setContentProvider(new ArrayContentProvider())
-    viewer.setInput(configurations)
-    GuiSupport.tableSelectAction()
-    
-  }
   
-  /** Creates control buttons on main table
-   *  
-   * @param parent composite
-   */
-  private def createMainButtons(parent: Composite) :Unit = {
-    val gridDatas = new Array[GridData](5)
-    for (i <- 0 to 4) {
-    gridDatas(i) = new GridData()
-    gridDatas(i).horizontalAlignment = GridData.FILL
-    gridDatas(i).grabExcessHorizontalSpace = true
-    }
-
-    
-    val buttonAdd = new Button(parent, SWT.PUSH)
-    val buttonRemove = new Button(parent, SWT.PUSH)
-    val buttonCopy = new Button(parent, SWT.PUSH)
-    val buttonUp = new Button(parent, SWT.PUSH)
-    val buttonDown = new Button(parent, SWT.PUSH)
-    
-    buttonAdd.setText(GuiConstants.buttonAdd)
-    buttonRemove.setText(GuiConstants.buttonRemove)
-    buttonCopy.setText(GuiConstants.buttonCopy)
-    buttonUp.setText(GuiConstants.buttonUp)
-    buttonDown.setText(GuiConstants.buttonDown)
-    
-    buttonAdd.setLayoutData(gridDatas(0))
-    buttonRemove.setLayoutData(gridDatas(1))
-    buttonCopy.setLayoutData(gridDatas(2))
-    buttonUp.setLayoutData(gridDatas(3))
-    buttonDown.setLayoutData(gridDatas(4))
-    
-    GuiSupport.buttonAddAction(buttonAdd)
-    GuiSupport.buttonRemoveAction(buttonRemove)
-    GuiSupport.buttonCopyAction(buttonCopy)
-    GuiSupport.buttonUpAction(buttonUp)
-    GuiSupport.buttonDownAction(buttonDown)
-    
-    GuiSupport.updateButtons()
-    
-  }
-  
-  /** Creates table columns
-   *  
-   * @param viewer table viewer
-   * @param title the column's title
-   * @param bound the column's bound
-   * @return column viewer
-   */
-  private def createTableViewerColumn(viewer :TableViewer, title :String, bound :Int) :TableViewerColumn = {
-    val viewerColumn = new TableViewerColumn(viewer, SWT.NONE)
-    val column = viewerColumn.getColumn()
-    column.setText(title)
-    column.setWidth(bound)
-    column.setResizable(true)
-    column.setMoveable(true)
-    viewerColumn
-  }
-  
-  def getLaunchGroup(launchMode :String) :ILaunchGroup = {
-    val lGroups = DebugUITools.getLaunchGroups().toArray[ILaunchGroup]
-    lGroups.filter(_.getMode().equals(launchMode))(0)
-  }
   
   override def getName() :String = {
     return "Composite"
@@ -819,7 +802,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       storedData = configuration.getAttribute(PluginConstants.storeAttributeName, new ArrayList[String])
     } catch {
       case e: CoreException => {
-        GuiSupport.configLoadError()
+        GuiSupport.configLoadError
         return
       }
     }
@@ -838,13 +821,13 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     configurationCopy.removeAttribute(PluginConstants.storeAttributeName)
     val tempList = new ArrayList[String]
     log(configurations)
-    for( element <- configurations.toArray()) {
-      tempList.add(element.asInstanceOf[LaunchConfigurationElement].serialize())
+    for( element <- configurations.toArray) {
+      tempList.add(element.asInstanceOf[LaunchConfigurationElement].serialize)
     }
     configurationCopy.setAttribute(PluginConstants.storeAttributeName, tempList)
     log("=====================")
   
-//    configurationCopy.setAttribute("configurations", configurations.toArray())
+//    configurationCopy.setAttribute("configurations", configurations.toArray)
   }
   
   override def setDefaults(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {
