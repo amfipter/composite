@@ -134,6 +134,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
  
   /** Support GUI class
    * 
+   * Provides buttons behavior, update table information 
    */
   private object GuiSupport {
     var tableViewer :TableViewer = null
@@ -147,13 +148,16 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     private var selectedConfigurations :ITreeSelection = null
     
     /** Dialog class that provides adding new launch configuration
-     *
+     *  
+     * @param parentShell Application shell
+     * @param parentMode launch mode (etc. run/debug..)
      */
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
       val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
-      val launchGroup = getLaunchGroup(launchMode)
       val mode = parentMode
+      val launchGroup = getLaunchGroup(mode)
+      
       
       val filter = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
@@ -206,11 +210,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     }
     
-    
- 
-    
+
     /** Creates dialog to adding new launch configuration 
      * 
+     * @param button - Target button
      */
     def buttonAddAction(button :Button) :Unit = {
       buttonAdd = button
@@ -269,10 +272,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         }
         def widgetDefaultSelected(event :SelectionEvent) :Unit ={}
       })
-    }
+    } 
     
     /** Remove selected table's elements
      * 
+     * @param button - Target button
      */
     def buttonRemoveAction(button :Button) :Unit = {
       buttonRemove = button
@@ -295,6 +299,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     /** Copy selected table's elements
      * 
+     * @param button - Target button
      */
     def buttonCopyAction(button :Button) :Unit = {
       buttonCopy = button
@@ -317,6 +322,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     /** Shift selected table's elements up
      * 
+     * @param button - Target button
      */
     def buttonUpAction(button :Button) :Unit = {
       buttonUp = button
@@ -343,6 +349,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     
     /** Shift selected table's elements down
      * 
+     * @param button - Target button
      */
     def buttonDownAction(button :Button) :Unit = {
       buttonDown = button
@@ -364,6 +371,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
        })
     }
+    
     /** Update buttons activity
      * 
      */
@@ -419,178 +427,193 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     def configLoadError() :Unit = {
       ErrorDialog.openError(mainComposite.getShell, GuiConstants.loadError, GuiConstants.loadErrorDescription, null)
     }
-  }
-  
-  /** Editing support class for mode column
-   *
-   */
-  private class ModeEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
-    val tableViewer = viewer//.asInstanceOf[TableViewer]
     
-    override protected def getCellEditor(element :Object) :CellEditor = {
-      val modes = new ArrayBuffer[String]
-      val configuration = element.asInstanceOf[LaunchConfigurationElement].launchConfiguration
+    /** Editing support class for mode column
+     *  
+     * @param viewer Table viewer
+     */
+    class ModeEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+      val tableViewer = viewer//.asInstanceOf[TableViewer]
       
-      if( configuration.supportsMode(ILaunchManager.RUN_MODE)) {
-        modes += "Run"
-      }
-      if( configuration.supportsMode(ILaunchManager.DEBUG_MODE)) {
-        modes += "Debug"
-      }
-      if( configuration.supportsMode(ILaunchManager.PROFILE_MODE)) {
-        modes += "Profile"
-      }
-      new ComboBoxCellEditor(tableViewer.getTable(), modes.toArray[String])
-    }
-    
-    override protected def canEdit(element : Object) :Boolean = {
-      true
-    }
-    
-    override protected def getValue(element :Object) :Object = {
-      val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      configContext.mode.id.asInstanceOf[Object]
-//      return 1.asInstanceOf[Object]
-      2.asInstanceOf[Object]
-    }
-    
-    override protected def setValue(element :Object, value :Object) :Unit = {
-      val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      val mode = value.asInstanceOf[Int]
-      try {
-        configContext.mode = ExecutionMode(mode)
-      } catch {
-      case e :Throwable => {
-        if( configContext.launchConfiguration.supportsMode(ILaunchManager.RUN_MODE)) {
-          configContext.mode = ExecutionMode.Run  
-        } else if(configContext.launchConfiguration.supportsMode(ILaunchManager.DEBUG_MODE)) {
-          configContext.mode = ExecutionMode.Debug
-        } else if(configContext.launchConfiguration.supportsMode(ILaunchManager.PROFILE_MODE))
-          configContext.mode = ExecutionMode.Profile
+      override protected def getCellEditor(element :Object) :CellEditor = {
+        val modes = new ArrayBuffer[String]
+        val configuration = element.asInstanceOf[LaunchConfigurationElement].launchConfiguration
+        
+        if( configuration.supportsMode(ILaunchManager.RUN_MODE)) {
+          modes += "Run"
         }
+        if( configuration.supportsMode(ILaunchManager.DEBUG_MODE)) {
+          modes += "Debug"
+        }
+        if( configuration.supportsMode(ILaunchManager.PROFILE_MODE)) {
+          modes += "Profile"
+        }
+        new ComboBoxCellEditor(tableViewer.getTable(), modes.toArray[String])
       }
-      tableViewer.update(element, null)
-      updateLaunchConfigurationDialog()
       
-    }
-  }
-  
-  /** Editing support class for wait termination column
-   *
-   */
-  private class WTEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
-    val tableViewer = viewer
-    
-    override protected def getCellEditor(evement :Object) :CellEditor = {
-      new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY)
-    }
-    override protected def canEdit(element :Object) :Boolean = {
-      true
-    }
-    override protected def getValue(element :Object) :Object = {
-      element.asInstanceOf[LaunchConfigurationElement].waitTermination.asInstanceOf[Object]
-    }
-    override protected def setValue(element :Object, value :Object) :Unit = {
-      element.asInstanceOf[LaunchConfigurationElement].waitTermination = value.asInstanceOf[Boolean]
-      viewer.update(element, null)
-      updateLaunchConfigurationDialog()
-    }
-  }
-  
-  /** Editing support class for parallel column
-   *
-   */
-  private class ParallelEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
-    val tableViewer = viewer
-    
-    override protected def getCellEditor(evement :Object) :CellEditor = {
-      new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY)
-    }
-    override protected def canEdit(element :Object) :Boolean = {
-      true
-    }
-    override protected def getValue(element :Object) :Object = {
-      element.asInstanceOf[LaunchConfigurationElement].parallel.asInstanceOf[Object]
-    }
-    override protected def setValue(element :Object, value :Object) :Unit = {
-      element.asInstanceOf[LaunchConfigurationElement].parallel = value.asInstanceOf[Boolean]
-      viewer.update(element, null)
-      updateLaunchConfigurationDialog()
-    }
-  }
-  
-  /** Editing support class for delay column
-   *
-   */
-  private class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
-    val tableView = viewer
-    val editor = new TextCellEditor(viewer.getTable())
-//    editor.setValidator(new NumberValidator())
-    
-    override protected def getCellEditor(element :Object) :CellEditor = {
-      editor
-    }
-    
-    override protected def canEdit(element : Object) :Boolean = {
-      true
-    }
-    
-    override protected def getValue(element :Object) :Object = {
-      val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      configContext.delay.toString
-    }
-    
-    override protected def setValue(element :Object, value :Object) :Unit = {
-      val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      try {
-        var delay = value.asInstanceOf[String].toInt
-        if( delay < 0) {
-          delay = 0
-        }
-        configContext.delay = delay
-      } catch {
-        case e :Throwable => configContext.delay = 0
+      override protected def canEdit(element : Object) :Boolean = {
+        true
       }
-      tableView.update(element, null)  
-      updateLaunchConfigurationDialog()
+      
+      override protected def getValue(element :Object) :Object = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        configContext.mode.id.asInstanceOf[Object]
+  //      return 1.asInstanceOf[Object]
+        2.asInstanceOf[Object]
+      }
+      
+      override protected def setValue(element :Object, value :Object) :Unit = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        val mode = value.asInstanceOf[Int]
+        try {
+          configContext.mode = ExecutionMode(mode)
+        } catch {
+        case e :Throwable => {
+          if( configContext.launchConfiguration.supportsMode(ILaunchManager.RUN_MODE)) {
+            configContext.mode = ExecutionMode.Run  
+          } else if(configContext.launchConfiguration.supportsMode(ILaunchManager.DEBUG_MODE)) {
+            configContext.mode = ExecutionMode.Debug
+          } else if(configContext.launchConfiguration.supportsMode(ILaunchManager.PROFILE_MODE))
+            configContext.mode = ExecutionMode.Profile
+          }
+        }
+        tableViewer.update(element, null)
+        updateLaunchConfigurationDialog()
+        
+      }
+    }
+    
+    /** Editing support class for wait termination column
+     *
+     * @param viewer Table viewer
+     */
+    class WTEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+      val tableViewer = viewer
+      
+      override protected def getCellEditor(evement :Object) :CellEditor = {
+        new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY)
+      }
+      override protected def canEdit(element :Object) :Boolean = {
+        true
+      }
+      override protected def getValue(element :Object) :Object = {
+        element.asInstanceOf[LaunchConfigurationElement].waitTermination.asInstanceOf[Object]
+      }
+      override protected def setValue(element :Object, value :Object) :Unit = {
+        element.asInstanceOf[LaunchConfigurationElement].waitTermination = value.asInstanceOf[Boolean]
+        viewer.update(element, null)
+        updateLaunchConfigurationDialog()
+      }
+    }
+    
+    /** Editing support class for parallel column
+     *
+     * @param viewer Table viewer
+     */
+    class ParallelEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+      val tableViewer = viewer
+      
+      override protected def getCellEditor(evement :Object) :CellEditor = {
+        new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY)
+      }
+      override protected def canEdit(element :Object) :Boolean = {
+        true
+      }
+      override protected def getValue(element :Object) :Object = {
+        element.asInstanceOf[LaunchConfigurationElement].parallel.asInstanceOf[Object]
+      }
+      override protected def setValue(element :Object, value :Object) :Unit = {
+        element.asInstanceOf[LaunchConfigurationElement].parallel = value.asInstanceOf[Boolean]
+        viewer.update(element, null)
+        updateLaunchConfigurationDialog()
+      }
+    }
+    
+    /** Editing support class for delay column
+     *
+     * @param viewer Table viewer
+     */
+    class DelayEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
+      val tableView = viewer
+      val editor = new TextCellEditor(viewer.getTable())
+  //    editor.setValidator(new NumberValidator())
+      
+      override protected def getCellEditor(element :Object) :CellEditor = {
+        editor
+      }
+      
+      override protected def canEdit(element : Object) :Boolean = {
+        true
+      }
+      
+      override protected def getValue(element :Object) :Object = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        configContext.delay.toString
+      }
+      
+      override protected def setValue(element :Object, value :Object) :Unit = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        try {
+          var delay = value.asInstanceOf[String].toInt
+          if( delay < 0) {
+            delay = 0
+          }
+          configContext.delay = delay
+        } catch {
+          case e :Throwable => configContext.delay = 0
+        }
+        tableView.update(element, null)  
+        updateLaunchConfigurationDialog()
+      }
+    }
+    
+    /** Editing support class for execution count column
+     *
+     * @param viewer Table viewer
+     */
+    class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
+      override val tableView = viewer
+      override val editor = new TextCellEditor(viewer.getTable())
+      
+      override protected def getCellEditor(element :Object) :CellEditor = {
+        return editor
+      }
+      
+      override protected def canEdit(element : Object) :Boolean = {
+        true
+      }
+      
+      override protected def getValue(element :Object) :Object = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        configContext.execCount.toString
+      }
+      
+      override protected def setValue(element :Object, value :Object) :Unit = {
+        val configContext = element.asInstanceOf[LaunchConfigurationElement]
+        try {
+          var execCount = value.asInstanceOf[String].toInt
+          if( execCount < 1) {
+            execCount = 1
+          }
+          configContext.execCount = execCount
+        } catch {
+          case e :Throwable => configContext.execCount = 1
+        }
+        tableView.update(element, null)
+        updateLaunchConfigurationDialog()   
+      }
     }
   }
   
-  /** Editing support class for execution count column
-   *
-   */
-  private class ExecutionCountEditingSupport(viewer :TableViewer) extends DelayEditingSupport(viewer) {
-    override val tableView = viewer
-    override val editor = new TextCellEditor(viewer.getTable())
-    
-    override protected def getCellEditor(element :Object) :CellEditor = {
-      return editor
-    }
-    
-    override protected def canEdit(element : Object) :Boolean = {
-      true
-    }
-    
-    override protected def getValue(element :Object) :Object = {
-      val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      configContext.execCount.toString
-    }
-    
-    override protected def setValue(element :Object, value :Object) :Unit = {
-      val configContext = element.asInstanceOf[LaunchConfigurationElement]
-      try {
-        var execCount = value.asInstanceOf[String].toInt
-        if( execCount < 1) {
-          execCount = 1
-        }
-        configContext.execCount = execCount
-      } catch {
-        case e :Throwable => configContext.execCount = 1
-      }
-      tableView.update(element, null)
-      updateLaunchConfigurationDialog()   
-    }
-  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   override def createControl(parent: Composite) :Unit = {
     val comp = new Composite(parent, SWT.NONE)
@@ -669,7 +692,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         configContext.mode.toString()
       }
     })
-    col2.setEditingSupport(new ModeEditingSupport(viewer))
+    col2.setEditingSupport(new GuiSupport.ModeEditingSupport(viewer))
 //    col2.getViewer.setCellModifier(modifier)
     
     col3.setLabelProvider(new ColumnLabelProvider() {
@@ -679,7 +702,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     })
     
-    col3.setEditingSupport(new DelayEditingSupport(viewer))
+    col3.setEditingSupport(new GuiSupport.DelayEditingSupport(viewer))
     col3.getColumn.addSelectionListener(new SelectionListener() {
       override def widgetSelected(event :SelectionEvent) :Unit = {
         
@@ -687,7 +710,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       override def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
     })
     
-    col4.setEditingSupport(new WTEditingSupport(viewer))
+    col4.setEditingSupport(new GuiSupport.WTEditingSupport(viewer))
     col4.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
         val configContext = element.asInstanceOf[LaunchConfigurationElement]
@@ -695,7 +718,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     })
     
-    col5.setEditingSupport(new ExecutionCountEditingSupport(viewer))
+    col5.setEditingSupport(new GuiSupport.ExecutionCountEditingSupport(viewer))
     col5.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
         val configContext = element.asInstanceOf[LaunchConfigurationElement]
@@ -703,7 +726,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       }
     })
     
-    col6.setEditingSupport(new ParallelEditingSupport(viewer))
+    col6.setEditingSupport(new GuiSupport.ParallelEditingSupport(viewer))
     col6.setLabelProvider(new ColumnLabelProvider() {
       override def getText(element :Object) :String = {
         val configContext = element.asInstanceOf[LaunchConfigurationElement]
