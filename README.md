@@ -4,9 +4,11 @@ Opportunities:
 
    - Execution of the given launch configuration set
    - Launch priority setting
+   - Launch mode setting
    - Launch count setting
    - Launch termination waiting
    - Launch parallel groups
+   - Delay before launch setting (in milliseconds)
    - Recursive configuration nesting
    - Composite configuration cycle detection
 
