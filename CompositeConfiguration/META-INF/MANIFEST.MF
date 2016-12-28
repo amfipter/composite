@@ -10,3 +10,4 @@ Require-Bundle: org.scala-lang.scala-library,
  org.eclipse.debug.core;bundle-version="3.9.1",
  org.eclipse.debug.ui;bundle-version="3.10.2"
 Export-Package: amfipter.plugin
+Bundle-ClassPath: .
