@@ -5,9 +5,11 @@ Opportunities:
 
    - Execution of the given launch configuration set
    - Launch priority setting
+   - Launch mode setting
    - Launch count setting
    - Launch termination waiting
    - Launch parallel groups
+   - Delay before launch setting (in milliseconds)
    - Recursive configuration nesting
    - Composite configuration cycle detection
 
@@ -19,7 +21,7 @@ Composite configuration with client-server applications and something else:
 You can change a configuration of launch parameters directly in the table:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite2.png?raw=true)
 
-Sometimes recursive composite configurations can make your life simpler:
+Sometimes recursive composite configurations can make your life simplier:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite3.png?raw=true)
 
 
