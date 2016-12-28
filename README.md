@@ -1,5 +1,6 @@
 # Composite Configuration Plugin
-Eclipse plug-in. Creates composite launch configuration
+Eclipse plug-in. Creates composite launch configuration.
+
 Opportunities:
 
    - Execution of the given launch configuration set
