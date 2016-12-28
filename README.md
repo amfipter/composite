@@ -1,5 +1,6 @@
 # Composite Configuration Plugin
 Eclipse plug-in. Creates composite launch configuration
+
 Opportunities:
 
    - Execution of the given launch configuration set
@@ -20,7 +21,7 @@ Composite configuration with client-server applications and something else:
 You can change a configuration of launch parameters directly in the table:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite2.png?raw=true)
 
-Sometimes recursive composite configurations can make your life simpler:
+Sometimes recursive composite configurations can make your life simplier:
 ![N|Solid](https://github.com/amfipter/composite/blob/master/composite3.png?raw=true)
 
 
