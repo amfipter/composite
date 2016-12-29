@@ -2,7 +2,7 @@ package amfipter.plugin.ui
 
 import org.eclipse.osgi.util.NLS
 
-//class GuiConstants extends NLS {}
+
 
 object GuiConstants extends NLS {
   private val BUNDLE_NAME = "amfipter.plugin.ui.guiconstants" 

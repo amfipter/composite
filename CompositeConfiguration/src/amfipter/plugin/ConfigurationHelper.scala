@@ -18,20 +18,6 @@ import org.eclipse.debug.ui.ILaunchGroup
  * 
  */
 object ConfigurationHelper {
-  
-  class Logger(fileName :String) {
-    val log = new PrintWriter(fileName)
-    def println(x :Any) :Unit = {
-      log.println(x.toString())
-      log.flush()
-    }
-    
-    def apply(x :Any) :Unit = {
-      println(x)
-    }
-    
-  }
-  private val log = new Logger("configHelper")
     
   /** Associate launch configuration with uniq identifier
    *  
@@ -100,8 +86,6 @@ object ConfigurationHelper {
     configurationStack += configurationCurrent.getName
     var cyclePath :Array[String] = null
     var cycle = false
-    log("find cycle")
-    log(configurationStack)
     /** Depth-first search in composite configuration dependency graph 
      * 
      * @param configs Array of composite's enclosed configurations

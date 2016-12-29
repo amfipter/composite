@@ -65,21 +65,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   private var configurationCurrent :ILaunchConfiguration = null 
   
   GuiConstants.init
-
-  class Logger(fileName :String) {
-    val log = new PrintWriter(fileName)
-    def println(x :Any) :Unit = {
-      log.println(x.toString)
-      log.flush
-    }
-    
-    def apply(x :Any) :Unit = {
-      println(x)
-    }
-    
-  }
-  
-  private val log = new Logger("LOG")
  
   /** Support GUI object
    * 
@@ -110,7 +95,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       
       val filter = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
-//          return true
           if( element.isInstanceOf[ILaunchConfigurationType]) {
             return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
           } else if( element.isInstanceOf[ILaunchConfiguration]) {
@@ -120,6 +104,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           } else 
             return false
         }
+        
       }
       
       override protected def createDialogArea(parent :Composite) :Control = {
@@ -184,8 +169,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
               } catch {
                 case e :CompositePluginException => {
                   //plugin can't add new configuration
-                  log("ADD ERROR")
-                  log(e.getMessage)
                   configurations.remove(launchElement)
                   return
                 }
@@ -583,61 +566,61 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           GuiConstants.TABLE_COL5_WIDTH,
           GuiConstants.TABLE_COL6_WIDTH)
           
-      val col1 = createTableViewerColumn(viewer, colNames(0), bounds(0))
-      val col2 = createTableViewerColumn(viewer, colNames(1), bounds(1))
-      val col3 = createTableViewerColumn(viewer, colNames(2), bounds(2))
-      val col4 = createTableViewerColumn(viewer, colNames(3), bounds(3))
-      val col5 = createTableViewerColumn(viewer, colNames(4), bounds(4))
-      val col6 = createTableViewerColumn(viewer, colNames(5), bounds(5))
+      val columnName = createTableViewerColumn(viewer, colNames(0), bounds(0))
+      val columnMode = createTableViewerColumn(viewer, colNames(1), bounds(1))
+      val columnDelay = createTableViewerColumn(viewer, colNames(2), bounds(2))
+      val columnWaitTermination = createTableViewerColumn(viewer, colNames(3), bounds(3))
+      val columnExecCount = createTableViewerColumn(viewer, colNames(4), bounds(4))
+      val columnParallel = createTableViewerColumn(viewer, colNames(5), bounds(5))
       
-      col1.setLabelProvider(new ColumnLabelProvider() {
+      columnName.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.name
         }
       })
       
-      col2.setLabelProvider(new ColumnLabelProvider() {
+      columnMode.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.mode.toString
         }
       })
-      col2.setEditingSupport(new CompositeTabGui.ModeEditingSupport(viewer))
+      columnMode.setEditingSupport(new CompositeTabGui.ModeEditingSupport(viewer))
       
-      col3.setLabelProvider(new ColumnLabelProvider() {
+      columnDelay.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.delay.toString
         }
       })
       
-      col3.setEditingSupport(new CompositeTabGui.DelayEditingSupport(viewer))
-      col3.getColumn.addSelectionListener(new SelectionListener() {
+      columnDelay.setEditingSupport(new CompositeTabGui.DelayEditingSupport(viewer))
+      columnDelay.getColumn.addSelectionListener(new SelectionListener() {
         override def widgetSelected(event :SelectionEvent) :Unit = {
           
         }
         override def widgetDefaultSelected(event :SelectionEvent) :Unit = {}
       })
       
-      col4.setEditingSupport(new CompositeTabGui.WTEditingSupport(viewer))
-      col4.setLabelProvider(new ColumnLabelProvider() {
+      columnWaitTermination.setEditingSupport(new CompositeTabGui.WTEditingSupport(viewer))
+      columnWaitTermination.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.waitTermination.toString
         }
       })
       
-      col5.setEditingSupport(new CompositeTabGui.ExecutionCountEditingSupport(viewer))
-      col5.setLabelProvider(new ColumnLabelProvider() {
+      columnExecCount.setEditingSupport(new CompositeTabGui.ExecutionCountEditingSupport(viewer))
+      columnExecCount.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.execCount.toString
         }
       })
       
-      col6.setEditingSupport(new CompositeTabGui.ParallelEditingSupport(viewer))
-      col6.setLabelProvider(new ColumnLabelProvider() {
+      columnParallel.setEditingSupport(new CompositeTabGui.ParallelEditingSupport(viewer))
+      columnParallel.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.parallel.toString

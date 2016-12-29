@@ -10,14 +10,12 @@ class CompositeTabGroup extends AbstractLaunchConfigurationTabGroup {
   
   override def createTabs(dialog :ILaunchConfigurationDialog, mode :String): Unit = {
     val tabs = ArrayBuffer[ILaunchConfigurationTab]()
-//    val compositeTab = 
     
     tabs += new CompositeTab(mode)
-//    tabs += new CommonTab()
+    tabs += new CommonTab
     
     setTabs(tabs.toArray)
-    
-    
+ 
   }
   
 }
