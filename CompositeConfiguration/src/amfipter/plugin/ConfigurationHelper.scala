@@ -42,7 +42,7 @@ object ConfigurationHelper {
   def findConfigurations(configurations :Vector[LaunchConfigurationElement]) :Unit = {
     val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations    
     for( launchConfuguration <- launchConfugurations) {
-      val id = launchConfuguration.getAttribute(PluginConstants.STORE_ID_PREFIX, "")
+      val id :String = launchConfuguration.getAttribute(PluginConstants.STORE_ID_PREFIX, "")
       for(configurationIndex <- 0 until configurations.size) {
         if( configurations.get(configurationIndex).id.equals(id)) {
           configurations.get(configurationIndex).launchConfiguration = launchConfuguration
@@ -67,7 +67,7 @@ object ConfigurationHelper {
     val usedId = new ArrayBuffer[String]
     configurations.map(x => usedId += x.asInstanceOf[LaunchConfigurationElement].id)
     val random = new Random
-    var newId = random.alphanumeric.take(PluginConstants.CONFIGURATION_ID_STRING_SIZE).mkString
+    var newId  = random.alphanumeric.take(PluginConstants.CONFIGURATION_ID_STRING_SIZE).mkString
     while(usedId.contains(newId)) {
       newId = random.alphanumeric.take(PluginConstants.CONFIGURATION_ID_STRING_SIZE).mkString
     }
@@ -82,10 +82,11 @@ object ConfigurationHelper {
    * @return Tuple with answer and array of configuration names in cycle if possible
    */
   def findCycle(configurationCurrent :ILaunchConfiguration, compositeConfigurationType :ILaunchConfigurationType, configurations :Array[Object]) :(Boolean, Array[String]) = {
-    val configurationStack = new ArrayBuffer[String]
-    configurationStack += configurationCurrent.getName
+    val configurationStack       = new ArrayBuffer[String]
     var cyclePath :Array[String] = null
-    var cycle = false
+    var cycle                    = false
+    
+    configurationStack += configurationCurrent.getName
     /** Depth-first search in composite configuration dependency graph 
      * 
      * @param configs Array of composite's enclosed configurations
@@ -93,7 +94,7 @@ object ConfigurationHelper {
     def DFS(configs :Array[ILaunchConfiguration]) :Unit = {
       for( config <- configs) {
         if( configurationStack.contains(config.getName)) {
-          cycle = true
+          cycle     = true
           cyclePath = configurationStack.toArray
           return
         }
@@ -124,8 +125,8 @@ object ConfigurationHelper {
       throw new CompositePluginException("Wrong composite type")
     }
     val launchConfugurations = DebugPlugin.getDefault.getLaunchManager.getLaunchConfigurations.toArray
-    val configs = new ArrayBuffer[ILaunchConfiguration]
-    val storedData = compositeConfig.getAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, null.asInstanceOf[ArrayList[String]])
+    val configs              = new ArrayBuffer[ILaunchConfiguration]
+    val storedData           = compositeConfig.getAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, null.asInstanceOf[ArrayList[String]])
     
     for( serializedLaunchElement <- storedData.toArray) {
       val lElement = new LaunchConfigurationElement(serializedLaunchElement.asInstanceOf[String])
@@ -133,7 +134,7 @@ object ConfigurationHelper {
       try {
         configs += launchConfugurations.filter(x => x.getAttribute(PluginConstants.STORE_ID_PREFIX, "").equals(lElement.id))(0)
       } catch {
-        case e :Throwable => return new Array[ILaunchConfiguration](0) //throw new CompositePluginException(e.getMessage + " Configuration mismatch id")
+        case e :Throwable => return new Array[ILaunchConfiguration](0) 
       }
     }
     configs.toArray

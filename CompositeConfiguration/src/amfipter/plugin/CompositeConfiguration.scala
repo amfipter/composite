@@ -15,14 +15,14 @@ import org.eclipse.debug.core.ILaunchConfigurationType
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate
 
 class CompositeConfiguration extends ILaunchConfigurationDelegate {
-  private var configurations = new Vector[LaunchConfigurationElement]
-  private var configurationName :String = null
+  private var configurations                              = new Vector[LaunchConfigurationElement]
+  private var configurationName :String                   = null
   private var configurationType :ILaunchConfigurationType = null
-  private var configurationCurrent :ILaunchConfiguration = null
+  private var configurationCurrent :ILaunchConfiguration  = null
   
   override def launch(configuration :ILaunchConfiguration, mode: String, launch :ILaunch, monitor :IProgressMonitor) :Unit = {
-    configurationName = configuration.getName
-    configurationType = configuration.getType
+    configurationName    = configuration.getName
+    configurationType    = configuration.getType
     configurationCurrent = configuration
     val processes = new ArrayBuffer[ILaunch]()
     initConfigurations

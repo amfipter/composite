@@ -58,11 +58,11 @@ import amfipter.plugin.PluginConstants
  *
  */
 class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
-  private val launchMode = lMode
-  private var configurations = new Vector[LaunchConfigurationElement]
-  private var configurationName = ""
+  private val launchMode                                  = lMode
+  private var configurations                              = new Vector[LaunchConfigurationElement]
+  private var configurationName                           = ""
   private var configurationType :ILaunchConfigurationType = null
-  private var configurationCurrent :ILaunchConfiguration = null 
+  private var configurationCurrent :ILaunchConfiguration  = null 
   
   GuiConstants.init
  
@@ -71,14 +71,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
    * Provides all GUI operations
    */
   private object CompositeTabGui {
-    var tableViewer :TableViewer = null
-    private var buttonAdd :Button = null
-    private var buttonRemove :Button = null
-    private var buttonCopy :Button = null
-    private var buttonUp :Button = null
-    private var buttonDown :Button = null
+    var tableViewer :TableViewer     = null
+    var mainComposite :Composite     = null
     
-    var mainComposite :Composite = null
+    private var buttonAdd :Button    = null
+    private var buttonRemove :Button = null
+    private var buttonCopy :Button   = null
+    private var buttonUp :Button     = null
+    private var buttonDown :Button   = null 
     private var selectedConfigurations :ITreeSelection = null
     
     /** Dialog class that provides adding new launch configuration
@@ -87,13 +87,11 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      * @param parentMode Launch mode (etc. run/debug..)
      */
     private class AddDialog(parentShell :Shell, parentMode :String) extends Dialog(parentShell) {
-      val manager = DebugUIPlugin.getDefault.getLaunchConfigurationManager
+      val manager      = DebugUIPlugin.getDefault.getLaunchConfigurationManager
       val launchGroups = manager.getLaunchGroups
-      val mode = parentMode
-      val launchGroup = ConfigurationHelper.getLaunchGroup(mode)
-      
-      
-      val filter = new ViewerFilter() {
+      val mode         = parentMode
+      val launchGroup  = ConfigurationHelper.getLaunchGroup(mode)  
+      val filter       = new ViewerFilter() {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
           if( element.isInstanceOf[ILaunchConfigurationType]) {
             return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
@@ -104,16 +102,15 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           } else 
             return false
         }
-        
       }
       
       override protected def createDialogArea(parent :Composite) :Control = {
         val container = super.createDialogArea(parent).asInstanceOf[Composite]       
-        val lTree = new LaunchConfigurationFilteredTree(parent, 
+        val lTree     = new LaunchConfigurationFilteredTree(parent, 
             SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION, 
             new PatternFilter(), launchGroup, null)
         lTree.createViewControl
-        val filters = lTree.getViewer.getFilters
+        val filters   = lTree.getViewer.getFilters
         for( filter <- filters) {
           if( filter.isInstanceOf[LaunchGroupFilter]) {
             lTree.getViewer.removeFilter(filter)
@@ -152,7 +149,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           val dialog = new AddDialog(mainComposite.getShell, launchMode)
           dialog.create
           
-          // scala can't find constants Dialog.OK or Window.OK
           if( dialog.open == GuiConstants.DIALOG_OK) {                
             for( configuration <- selectedConfigurations.toArray if configuration.isInstanceOf[ILaunchConfiguration]) {
               val launchElement = new LaunchConfigurationElement()
@@ -282,7 +278,7 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           
           for( configuration <- selected.toArray.reverse if configurations.indexOf(configuration) < configurations.size - 1) {
             val position = configurations.indexOf(configuration)
-            val element =  configurations.get(position)
+            val element  = configurations.get(position)
             
             configurations.remove(position)
             configurations.insertElementAt(element, position + 1)
@@ -357,20 +353,20 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      * @param viewer Table viewer
      */
     class ModeEditingSupport(viewer :TableViewer) extends EditingSupport(viewer) {
-      val tableViewer = viewer//.asInstanceOf[TableViewer]
+      val tableViewer = viewer
       
       override protected def getCellEditor(element :Object) :CellEditor = {
         val modes = new ArrayBuffer[String]
         val configuration = element.asInstanceOf[LaunchConfigurationElement].launchConfiguration
         
         if( configuration.supportsMode(ILaunchManager.RUN_MODE)) {
-          modes += "Run"
+          modes += GuiConstants.modeRun
         }
         if( configuration.supportsMode(ILaunchManager.DEBUG_MODE)) {
-          modes += "Debug"
+          modes += GuiConstants.modeDebug
         }
         if( configuration.supportsMode(ILaunchManager.PROFILE_MODE)) {
-          modes += "Profile"
+          modes += GuiConstants.modeProfile
         }
         new ComboBoxCellEditor(tableViewer.getTable, modes.toArray[String])
       }
@@ -498,14 +494,6 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       override val tableView = viewer
       override val editor = new TextCellEditor(viewer.getTable)
       
-      override protected def getCellEditor(element :Object) :CellEditor = {
-        return editor
-      }
-      
-      override protected def canEdit(element : Object) :Boolean = {
-        true
-      }
-      
       override protected def getValue(element :Object) :Object = {
         val configContext = element.asInstanceOf[LaunchConfigurationElement]
         
@@ -535,8 +523,8 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
      * @param parent Composite
      */
     def createMainTable(parent :Composite) :Unit = {
-      val viewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL )
-      val layout = new TableLayout()
+      val viewer   = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL )
+      val layout   = new TableLayout()
       val gridData = new GridData()
       
       CompositeTabGui.tableViewer = viewer
@@ -566,12 +554,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
           GuiConstants.TABLE_COL5_WIDTH,
           GuiConstants.TABLE_COL6_WIDTH)
           
-      val columnName = createTableViewerColumn(viewer, colNames(0), bounds(0))
-      val columnMode = createTableViewerColumn(viewer, colNames(1), bounds(1))
-      val columnDelay = createTableViewerColumn(viewer, colNames(2), bounds(2))
+      val columnName            = createTableViewerColumn(viewer, colNames(0), bounds(0))
+      val columnMode            = createTableViewerColumn(viewer, colNames(1), bounds(1))
+      val columnDelay           = createTableViewerColumn(viewer, colNames(2), bounds(2))
       val columnWaitTermination = createTableViewerColumn(viewer, colNames(3), bounds(3))
-      val columnExecCount = createTableViewerColumn(viewer, colNames(4), bounds(4))
-      val columnParallel = createTableViewerColumn(viewer, colNames(5), bounds(5))
+      val columnExecCount       = createTableViewerColumn(viewer, colNames(4), bounds(4))
+      val columnParallel        = createTableViewerColumn(viewer, colNames(5), bounds(5))
       
       columnName.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
@@ -640,18 +628,18 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     def createMainButtons(parent: Composite) :Unit = {
       val gridDatas = new Array[GridData](5)
       
-      for (i <- 0 to 4) {
-      gridDatas(i) = new GridData()
-      gridDatas(i).horizontalAlignment = GridData.FILL
-      gridDatas(i).grabExcessHorizontalSpace = true
+      for (row <- 0 to 4) {
+      gridDatas(row) = new GridData()
+      gridDatas(row).horizontalAlignment = GridData.FILL
+      gridDatas(row).grabExcessHorizontalSpace = true
       }
   
       
-      val buttonAdd = new Button(parent, SWT.PUSH)
+      val buttonAdd    = new Button(parent, SWT.PUSH)
       val buttonRemove = new Button(parent, SWT.PUSH)
-      val buttonCopy = new Button(parent, SWT.PUSH)
-      val buttonUp = new Button(parent, SWT.PUSH)
-      val buttonDown = new Button(parent, SWT.PUSH)
+      val buttonCopy   = new Button(parent, SWT.PUSH)
+      val buttonUp     = new Button(parent, SWT.PUSH)
+      val buttonDown   = new Button(parent, SWT.PUSH)
       
       buttonAdd.setText(GuiConstants.buttonAdd)
       buttonRemove.setText(GuiConstants.buttonRemove)
@@ -703,10 +691,10 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
     setControl(comp)
     
     CompositeTabGui.createMainTable(comp)
-    val buttonComp = new Composite(comp, SWT.NONE)
+    val buttonComp       = new Composite(comp, SWT.NONE)
     val buttonGridLayout = new GridLayout(5, true)
     
-    buttonComp.setLayout(new GridLayout(5, true))
+    buttonComp.setLayout(buttonGridLayout)
     buttonComp.setFont(parent.getFont)
     CompositeTabGui.createMainButtons(buttonComp)
     CompositeTabGui.mainComposite = parent  
@@ -717,11 +705,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   }
   
   override def initializeFrom(configuration :ILaunchConfiguration) :Unit = {
-    configurationName = configuration.getName
-    configurationType = configuration.getType
+    configurationName    = configuration.getName
+    configurationType    = configuration.getType
     configurationCurrent = configuration
+    
     var storedData :java.util.List[String] = null
-    val newConfigurations = new Vector[LaunchConfigurationElement]
+    val newConfigurations                  = new Vector[LaunchConfigurationElement]
     
     try {
       storedData = configuration.getAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, new ArrayList[String])
@@ -743,12 +732,12 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
   
   override def performApply(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {
     configurationCopy.removeAttribute(PluginConstants.STORE_ATTRIBUTE_NAME)
-    val tempList = new ArrayList[String]
+    val storedConfigurations = new ArrayList[String]
     
     for( element <- configurations.toArray) {
-      tempList.add(element.asInstanceOf[LaunchConfigurationElement].serialize)
+      storedConfigurations.add(element.asInstanceOf[LaunchConfigurationElement].serialize)
     }
-    configurationCopy.setAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, tempList)
+    configurationCopy.setAttribute(PluginConstants.STORE_ATTRIBUTE_NAME, storedConfigurations)
   }
   
   override def setDefaults(configurationCopy :ILaunchConfigurationWorkingCopy) :Unit = {

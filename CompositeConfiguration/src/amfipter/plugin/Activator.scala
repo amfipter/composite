@@ -5,7 +5,7 @@ import org.osgi.framework.BundleContext
 
 
 class Activator extends AbstractUIPlugin {
-  val PLUGIN_ID = "test1"
+  val PLUGIN_ID = "CompositeConfiguration"
   
   
   override def start(context :BundleContext) :Unit = {
