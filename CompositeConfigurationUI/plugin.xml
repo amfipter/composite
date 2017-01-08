@@ -13,7 +13,7 @@
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
             class="amfipter.plugin.ui.CompositeTabGroup"
-            id="amfipter.plugin.composite"
+            id="amfipter.plugin.compositeTabs"
             type="amfipter.plugin.composite">
       </launchConfigurationTabGroup>
 </extension>

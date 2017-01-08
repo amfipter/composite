@@ -95,6 +95,17 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
         override def select(viewer :Viewer, parentElement :Object, element :Object) :Boolean = {
           if( element.isInstanceOf[ILaunchConfigurationType]) {
             return getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length > 0
+            if( getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length == 0) {
+              return false
+            } else if( getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType]).length == 1) {
+              if( getLaunchManager.getLaunchConfigurations(element.asInstanceOf[ILaunchConfigurationType])(0).getName.equals(configurationName)) {
+                return false
+              } else {
+                return true
+              }
+            } else {
+              return true
+            }
           } else if( element.isInstanceOf[ILaunchConfiguration]) {
             return DebugUIPlugin.doLaunchConfigurationFiltering(element.asInstanceOf[ILaunchConfiguration]) && 
               !WorkbenchActivityHelper.filterItem(element.asInstanceOf[ILaunchConfiguration]) &&
