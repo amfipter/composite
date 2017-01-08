@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Button
 import org.eclipse.swt.widgets.Composite
 import org.eclipse.swt.widgets.Control
 import org.eclipse.swt.widgets.Shell
+import org.eclipse.swt.graphics.Image
 import org.eclipse.ui.activities.WorkbenchActivityHelper
 import org.eclipse.ui.dialogs.PatternFilter
 
@@ -53,6 +54,7 @@ import amfipter.plugin.ConfigurationHelper
 import amfipter.plugin.ExecutionMode
 import amfipter.plugin.LaunchConfigurationElement
 import amfipter.plugin.PluginConstants
+import org.eclipse.debug.ui.DebugUITools
 
 /** Composite Tab GUI
  *
@@ -572,10 +574,14 @@ class CompositeTab(lMode :String) extends AbstractLaunchConfigurationTab {
       val columnExecCount       = createTableViewerColumn(viewer, colNames(4), bounds(4))
       val columnParallel        = createTableViewerColumn(viewer, colNames(5), bounds(5))
       
+      
       columnName.setLabelProvider(new ColumnLabelProvider() {
         override def getText(element :Object) :String = {
           val configContext = element.asInstanceOf[LaunchConfigurationElement]
           configContext.name
+        }
+        override def getImage(element :Object) :Image = {
+          DebugUITools.newDebugModelPresentation().getImage(element.asInstanceOf[LaunchConfigurationElement].launchConfiguration)
         }
       })
       
