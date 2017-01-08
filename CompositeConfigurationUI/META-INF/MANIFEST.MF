@@ -11,5 +11,5 @@ Require-Bundle: org.scala-lang.scala-library,
  org.eclipse.debug.ui;bundle-version="3.10.2",
  CompositeConfiguration;bundle-version="1.0.0";visibility:=reexport
 Bundle-Activator: amfipter.plugin.ui.Activator
-Bundle-ClassPath: bin/amfipter/plugin/,
- .
+Bundle-ClassPath: .,
+ bin/

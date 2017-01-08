@@ -12,3 +12,4 @@ Require-Bundle: org.scala-lang.scala-library,
 Export-Package: amfipter.plugin
 Bundle-ClassPath: .
 Bundle-Activator: amfipter.plugin.Activator
+Bundle-ActivationPolicy: lazy
